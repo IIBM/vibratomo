@@ -1,0 +1,233 @@
+BL51 BANKED LINKER/LOCATER V6.22                                                        05/04/2014  03:38:27  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
+C:\PROGRAM FILES (X86)\KEIL\C51\BIN\BL51.EXE STARTUP.obj, rutias.obj, MOTOR.obj TO motor DRV8825 RAMSIZE (256) CODE (0X0
+>> 000-0X2FFF)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  STARTUP.obj (?C_STARTUP)
+  rutias.obj (RUTIAS)
+  MOTOR.obj (MOTOR)
+
+
+LINK MAP OF MODULE:  motor DRV8825 (?C_STARTUP)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0001H     UNIT         _DATA_GROUP_
+            IDATA   0009H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+                    0003H     00FDH                  *** GAP ***
+            CODE    0100H     0069H     ABSOLUTE     
+                    0169H     0697H                  *** GAP ***
+            CODE    0800H     0046H     UNIT         ?PR?MAIN?MOTOR
+            CODE    0846H     000CH     UNIT         ?C_C51STARTUP
+
+
+
+OVERLAY MAP OF MODULE:   motor DRV8825 (?C_STARTUP)
+
+
+SEGMENT                          DATA_GROUP 
+  +--> CALLED SEGMENT          START    LENGTH
+----------------------------------------------
+?C_C51STARTUP                  -----    -----
+  +--> ?PR?MAIN?MOTOR
+
+?PR?MAIN?MOTOR                 0008H    0001H
+
+
+
+SYMBOL TABLE OF MODULE:  motor DRV8825 (?C_STARTUP)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        ?C_STARTUP
+  C:0846H         SEGMENT       ?C_C51STARTUP
+  I:0009H         SEGMENT       ?STACK
+  C:0000H         PUBLIC        ?C_STARTUP
+  D:00E0H         SYMBOL        ACC
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/04/2014  03:38:27  PAGE 2
+
+
+  D:00F0H         SYMBOL        B
+  D:0083H         SYMBOL        DPH
+  D:0082H         SYMBOL        DPL
+  N:0000H         SYMBOL        IBPSTACK
+  N:0100H         SYMBOL        IBPSTACKTOP
+  N:0080H         SYMBOL        IDATALEN
+  C:0849H         SYMBOL        IDATALOOP
+  N:0000H         SYMBOL        PBPSTACK
+  N:0100H         SYMBOL        PBPSTACKTOP
+  N:0000H         SYMBOL        PDATALEN
+  N:0000H         SYMBOL        PDATASTART
+  N:0000H         SYMBOL        PPAGE
+  N:0000H         SYMBOL        PPAGEENABLE
+  D:00A0H         SYMBOL        PPAGE_SFR
+  D:0081H         SYMBOL        SP
+  C:0846H         SYMBOL        STARTUP1
+  N:0000H         SYMBOL        XBPSTACK
+  N:0000H         SYMBOL        XBPSTACKTOP
+  N:0000H         SYMBOL        XDATALEN
+  N:0000H         SYMBOL        XDATASTART
+  C:0000H         LINE#         126
+  C:0846H         LINE#         133
+  C:0848H         LINE#         134
+  C:0849H         LINE#         135
+  C:084AH         LINE#         136
+  C:084CH         LINE#         185
+  C:084FH         LINE#         196
+  -------         ENDMOD        ?C_STARTUP
+
+  -------         MODULE        RUTIAS
+  C:0106H         PUBLIC        APAGAR
+  C:0143H         PUBLIC        AVANZAR
+  C:014FH         PUBLIC        AVANZAR_1MM
+  C:0146H         PUBLIC        AVANZAR_1_PASOM
+  C:012BH         PUBLIC        DELAY_PASOS
+  C:011AH         PUBLIC        DELAY_SLEEP
+  C:0103H         PUBLIC        ERROR
+  C:013CH         PUBLIC        PASO
+  C:0100H         PUBLIC        PRENDER
+  C:0166H         PUBLIC        RETROCEDER
+  C:015FH         PUBLIC        RETROCEDER_1MM
+  C:0125H         SYMBOL        CICLO
+  C:0136H         SYMBOL        CICLO2
+  C:0114H         SYMBOL        CICLO3
+  C:0109H         SYMBOL        DELAY_PASOS_R
+  B:0090H.2       SYMBOL        DIR
+  C:0148H         SYMBOL        FALTA
+  C:0151H         SYMBOL        FALTA2
+  C:0158H         SYMBOL        FALTA3
+  C:0161H         SYMBOL        FALTA4
+  B:0090H.4       SYMBOL        FAUL
+  B:0090H.5       SYMBOL        HOME
+  D:0090H         SYMBOL        P1
+  B:0090H.1       SYMBOL        RESET
+  N:00ECH         SYMBOL        RETRASO_INF
+  N:0081H         SYMBOL        RETRASO_INF_R
+  N:00FAH         SYMBOL        RETRASO_SUP
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/04/2014  03:38:27  PAGE 3
+
+
+  N:00E1H         SYMBOL        RETRASO_SUP_R
+  C:0156H         SYMBOL        RETROCEDER_1_PASOM
+  B:0090H.3       SYMBOL        SLEEP
+  B:0090H.0       SYMBOL        STEP
+  B:0088H.5       SYMBOL        TF0
+  D:008CH         SYMBOL        TH0
+  D:008AH         SYMBOL        TL0
+  D:0089H         SYMBOL        TMOD
+  B:0088H.4       SYMBOL        TR0
+  C:0100H         LINE#         33
+  C:0102H         LINE#         34
+  C:0103H         LINE#         37
+  C:0105H         LINE#         38
+  C:0106H         LINE#         42
+  C:0108H         LINE#         43
+  C:0109H         LINE#         46
+  C:010CH         LINE#         47
+  C:010FH         LINE#         48
+  C:0112H         LINE#         49
+  C:0114H         LINE#         50
+  C:0117H         LINE#         51
+  C:0119H         LINE#         52
+  C:011AH         LINE#         56
+  C:011DH         LINE#         57
+  C:0120H         LINE#         58
+  C:0123H         LINE#         59
+  C:0125H         LINE#         60
+  C:0128H         LINE#         61
+  C:012AH         LINE#         62
+  C:012BH         LINE#         71
+  C:012EH         LINE#         72
+  C:0131H         LINE#         73
+  C:0134H         LINE#         74
+  C:0136H         LINE#         75
+  C:0139H         LINE#         76
+  C:013BH         LINE#         77
+  C:013CH         LINE#         87
+  C:013EH         LINE#         88
+  C:013FH         LINE#         89
+  C:0141H         LINE#         90
+  C:0142H         LINE#         91
+  C:0143H         LINE#         95
+  C:0145H         LINE#         96
+  C:0146H         LINE#         99
+  C:0148H         LINE#         100
+  C:014AH         LINE#         101
+  C:014CH         LINE#         102
+  C:014EH         LINE#         103
+  C:014FH         LINE#         106
+  C:0151H         LINE#         107
+  C:0153H         LINE#         108
+  C:0155H         LINE#         109
+  C:0156H         LINE#         112
+  C:0158H         LINE#         113
+  C:015AH         LINE#         114
+  C:015CH         LINE#         115
+  C:015EH         LINE#         116
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/04/2014  03:38:27  PAGE 4
+
+
+  C:015FH         LINE#         119
+  C:0161H         LINE#         120
+  C:0163H         LINE#         121
+  C:0165H         LINE#         122
+  C:0166H         LINE#         125
+  C:0168H         LINE#         126
+  -------         ENDMOD        RUTIAS
+
+  -------         MODULE        MOTOR
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  C:0800H         PUBLIC        main
+  -------         PROC          MAIN
+  -------         DO            
+  D:0008H         SYMBOL        R7
+  -------         ENDDO         
+  C:0800H         LINE#         26
+  C:0800H         LINE#         27
+  C:0800H         LINE#         28
+  C:0803H         LINE#         30
+  C:0803H         LINE#         31
+  C:0803H         LINE#         32
+  C:0808H         LINE#         33
+  C:0808H         LINE#         34
+  C:080BH         LINE#         35
+  C:080DH         LINE#         36
+  C:080DH         LINE#         37
+  C:0810H         LINE#         38
+  C:0813H         LINE#         39
+  C:0816H         LINE#         40
+  C:0824H         LINE#         41
+  C:0824H         LINE#         42
+  C:0827H         LINE#         43
+  C:0829H         LINE#         44
+  C:082BH         LINE#         45
+  C:082EH         LINE#         46
+  C:0831H         LINE#         47
+  C:083FH         LINE#         48
+  C:083FH         LINE#         49
+  C:0842H         LINE#         50
+  C:0844H         LINE#         51
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        MOTOR
+
+******************************************************************************
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 00BEH BYTE ( 9%) *
+******************************************************************************
+
+Program Size: data=10.0 xdata=0 code=190
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,199 @@
+A51 MACRO ASSEMBLER  RUTIAS                                                               05/04/2014 03:38:27 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.02b
+OBJECT MODULE PLACED IN rutias.OBJ
+ASSEMBLER INVOKED BY: C:\Program Files (x86)\keil\C51\BIN\A51.EXE rutias.asm SET(SMALL) DEBUG EP
+
+LOC  OBJ            LINE     SOURCE
+
+                       1     PUBLIC PASO                                             ;PARA QUE LAS PUEDA VER DESDE C
+                       2     PUBLIC DELAY_SLEEP
+                       3     PUBLIC AVANZAR
+                       4     PUBLIC RETROCEDER
+                       5     PUBLIC DELAY_PASOS
+                       6     PUBLIC AVANZAR_1_PASOM
+                       7     PUBLIC AVANZAR_1mm
+                       8     PUBLIC PRENDER
+                       9     PUBLIC APAGAR
+                      10     PUBLIC ERROR
+                      11     PUBLIC RETROCEDER_1mm
+                      12     
+                      13     
+                      14     ;24 pasos del motor son 1,008 mm
+                      15     ;si 1/32 pasos hace el DRV entonces 768 pasos DRV son 1,008mm
+                      16     ; DELAY_PASOS = velocidad /768 donde velocidad son mm/seg
+                      17     
+  0090                18     STEP                    equ     P1.0    ;etiqueto al puerto con el nombre. 
+  0091                19     RESET                   equ     P1.1
+  0092                20     DIR                             equ     p1.2
+  0093                21     SLEEP                   equ     P1.3
+  0094                22     FAUL                    equ     P1.4
+  0095                23     HOME                    equ     P1.5
+  00FA                24     RETRASO_SUP             equ     250             ;sale de hacer 65536-(retardo deseado + 6) 
+                             donde 65536 es el numero maxio del temporizador con 16 bit y 6 el tiempo para setear las variables
+  00EC                25     RETRASO_INF             equ 236         ;retraso sup son los primero 8 bit y el inf son los
+                              ultimos 8 
+  00E1                26     RETRASO_SUP_R   equ     225             ;retraso superior e inferior para el retorceso, sal
+                             e de hacer la misma cuenta que antes
+  0081                27     RETRASO_INF_R   equ 129
+                      28     
+                      29     
+----                  30     cseg at 0x0100
+                      31     
+0100                  32     PRENDER:
+0100 D293             33                             SETB SLEEP
+0102 22               34                             RET
+                      35     
+0103                  36     ERROR:
+0103 A294             37                             MOV C,FAUL
+0105 22               38                             RET
+                      39                     
+                      40     
+0106                  41     APAGAR:
+0106 C293             42                             CLR SLEEP
+0108 22               43                             RET
+                      44     
+0109                  45     DELAY_PASOS_R:                                          ;RETRDO PARA EL RETROCESO
+0109 758901           46                             MOV TMOD, #01H
+010C 758CE1           47                             MOV TH0,#RETRASO_SUP_R
+010F 758A81           48                             MOV TL0,#RETRASO_INF_R
+0112 D28C             49                             SETB TR0
+0114 308DFD           50             CICLO3: JNB TF0,CICLO3
+0117 C28D             51                             CLR TF0
+0119 22               52                             RET
+                      53                     
+                      54                     
+011A                  55     DELAY_SLEEP:                    ;es un delay de 1.7ms. Es el tiempo que necesita DRV desde 
+A51 MACRO ASSEMBLER  RUTIAS                                                               05/04/2014 03:38:27 PAGE     2
+
+                             que se lo saca de modo sleep hasta que se le mande la señal para hacer un paso.
+011A 758901           56                             MOV TMOD,#01H
+011D 758CF9           57                             MOV TH0,#249
+0120 758A62           58                             MOV TL0,#98
+0123 D28C             59                             SETB TR0
+0125 308DFD           60             CICLO:  JNB TF0,CICLO
+0128 C28D             61                             CLR TF0
+012A 22               62                             RET
+                      63     
+                      64     ;                       MOV R1,#100
+                      65     ;       LAZO3:  MOV R2,#7 ;
+                      66     ;       LAZO4:  DJNZ R2,LAZO4
+                      67     ;                       DJNZ R1,LAZO3
+                      68     ;                       RET
+                      69                             
+012B                  70     DELAY_PASOS:                    ; es un delay de 1.3ms
+012B 758901           71                             MOV TMOD, #01H
+012E 758CFA           72                             MOV TH0,#RETRASO_SUP
+0131 758AEC           73                             MOV TL0,#RETRASO_INF
+0134 D28C             74                             SETB TR0
+0136 308DFD           75             CICLO2: JNB TF0,CICLO2
+0139 C28D             76                             CLR TF0
+013B 22               77                             RET
+                      78     
+                      79     ;                       MOV R1,#3
+                      80     ;       LAZO5:  MOV R2,#215
+                      81     ;       LAZO6:  DJNZ R2,LAZO6
+                      82     ;                       DJNZ R1,LAZO5
+                      83     ;                       RET
+                      84                             
+                      85     
+013C                  86     PASO:                                   ; manda una señal de '1' y '0' para que el DRV haga
+                              1/32 paso
+013C D290             87                             SETB    STEP
+013E 00               88                             NOP
+013F C290             89                             CLR             STEP
+0141 00               90                             NOP
+0142 22               91                             RET
+                      92                             ;La señal debe permanecer en alto y bajo 2us por estado para que fu
+                             ncione el DRV
+                      93                             
+0143                  94     AVANZAR:
+0143 D292             95                             SETB DIR ;DIR=1 avanza
+0145 22               96                             RET
+                      97     
+0146                  98     AVANZAR_1_PASOM:                                ;hace un paso completo del motor
+0146 A920             99                             MOV R1,32
+0148 313C            100             FALTA:  CALL PASO               
+014A 312B            101                             CALL DELAY_PASOS        ;espera entre micropaso y micropaso
+014C D9FA            102                             DJNZ R1,FALTA
+014E 22              103                             RET
+                     104                             
+014F                 105     AVANZAR_1mm:                            ;avanza 1 mm
+014F A918            106                             MOV R1,24
+0151 3146            107             FALTA2: CALL AVANZAR_1_PASOM
+0153 D9FC            108                             DJNZ R1,FALTA2
+0155 22              109                             RET
+                     110                             
+0156                 111     RETROCEDER_1_PASOM:                             ;hace un paso completo del motor
+0156 A920            112                             MOV R1,32
+0158 313C            113             FALTA3: CALL PASO               
+015A 3109            114                             CALL DELAY_PASOS_R      ;espera entre micropaso y micropaso
+015C D9FA            115                             DJNZ R1,FALTA3
+015E 22              116                             RET
+                     117                             
+015F                 118     RETROCEDER_1mm:                         ;avanza 1 mm
+A51 MACRO ASSEMBLER  RUTIAS                                                               05/04/2014 03:38:27 PAGE     3
+
+015F A918            119                             MOV R1,24
+0161 3156            120             FALTA4: CALL RETROCEDER_1_PASOM
+0163 D9FC            121                             DJNZ R1,FALTA4
+0165 22              122                             RET
+                     123     
+0166                 124     RETROCEDER:
+0166 C292            125                             CLR DIR
+0168 22              126                             RET
+                     127     
+                     128     
+                     129             
+                     130     end
+A51 MACRO ASSEMBLER  RUTIAS                                                               05/04/2014 03:38:27 PAGE     4
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+APAGAR . . . . . .  C ADDR   0106H   A   
+AVANZAR. . . . . .  C ADDR   0143H   A   
+AVANZAR_1MM. . . .  C ADDR   014FH   A   
+AVANZAR_1_PASOM. .  C ADDR   0146H   A   
+CICLO. . . . . . .  C ADDR   0125H   A   
+CICLO2 . . . . . .  C ADDR   0136H   A   
+CICLO3 . . . . . .  C ADDR   0114H   A   
+DELAY_PASOS. . . .  C ADDR   012BH   A   
+DELAY_PASOS_R. . .  C ADDR   0109H   A   
+DELAY_SLEEP. . . .  C ADDR   011AH   A   
+DIR. . . . . . . .  B ADDR   0090H.2 A   
+ERROR. . . . . . .  C ADDR   0103H   A   
+FALTA. . . . . . .  C ADDR   0148H   A   
+FALTA2 . . . . . .  C ADDR   0151H   A   
+FALTA3 . . . . . .  C ADDR   0158H   A   
+FALTA4 . . . . . .  C ADDR   0161H   A   
+FAUL . . . . . . .  B ADDR   0090H.4 A   
+HOME . . . . . . .  B ADDR   0090H.5 A   
+P1 . . . . . . . .  D ADDR   0090H   A   
+PASO . . . . . . .  C ADDR   013CH   A   
+PRENDER. . . . . .  C ADDR   0100H   A   
+RESET. . . . . . .  B ADDR   0090H.1 A   
+RETRASO_INF. . . .  N NUMB   00ECH   A   
+RETRASO_INF_R. . .  N NUMB   0081H   A   
+RETRASO_SUP. . . .  N NUMB   00FAH   A   
+RETRASO_SUP_R. . .  N NUMB   00E1H   A   
+RETROCEDER . . . .  C ADDR   0166H   A   
+RETROCEDER_1MM . .  C ADDR   015FH   A   
+RETROCEDER_1_PASOM  C ADDR   0156H   A   
+SLEEP. . . . . . .  B ADDR   0090H.3 A   
+STEP . . . . . . .  B ADDR   0090H.0 A   
+TF0. . . . . . . .  B ADDR   0088H.5 A   
+TH0. . . . . . . .  D ADDR   008CH   A   
+TL0. . . . . . . .  D ADDR   008AH   A   
+TMOD . . . . . . .  D ADDR   0089H   A   
+TR0. . . . . . . .  B ADDR   0088H.4 A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)

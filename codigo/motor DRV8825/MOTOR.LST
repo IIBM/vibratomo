@@ -1,0 +1,83 @@
+C51 COMPILER V9.52.0.0   MOTOR                                                             05/04/2014 03:38:27 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE MOTOR
+OBJECT MODULE PLACED IN MOTOR.OBJ
+COMPILER INVOKED BY: C:\Program Files (x86)\keil\C51\BIN\C51.EXE MOTOR.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          //24 pasos del motor son 1,008 mm
+   2          //si 1/32 pasos hace el DRV entonces 768 pasos DRV son 1,008mm
+   3          // DELAY_PASOS = velocidad /768 donde velocidad son seg/mm
+   4          
+   5          #include <AT89X52.H>
+   6          #define RECORRIDO 100 //defino la long a recorrer en mm
+   7          #define CONDICION 1   //condicion para funcionar
+   8          
+   9          
+  10          extern void DELAY();
+  11          extern void PASO();
+  12          extern void DELAY_SLEEP();
+  13          extern void AVANZAR();
+  14          extern void RETROCEDER();
+  15          extern void DELAY_PASOS();
+  16          extern void AVANZAR_1_PASOM();
+  17          extern void AVANZAR_1mm();
+  18          extern void PRENDER();
+  19          extern void APAGAR();
+  20          extern bit ERROR();
+  21          extern void RETROCEDER_1mm();
+  22          
+  23          
+  24          //volatile uint8_t dis = 0;
+  25          
+  26          void main ()
+  27          {
+  28   1        char R7=0;
+  29   1        
+  30   1        while(CONDICION)
+  31   1        {
+  32   2          if(ERROR()==0)
+  33   2          {
+  34   3            APAGAR();
+  35   3          }
+  36   2          else{
+  37   3            PRENDER();
+  38   3            AVANZAR();
+  39   3            DELAY_SLEEP();
+  40   3            while(R7<RECORRIDO && ERROR()==0)
+  41   3            {
+  42   4              AVANZAR_1mm();
+  43   4              R7++;
+  44   4            }
+  45   3            RETROCEDER();
+  46   3            R7=0;
+  47   3            while(R7<RECORRIDO && ERROR()==0)
+  48   3            {
+  49   4              RETROCEDER_1mm();
+  50   4              R7++;
+  51   4            }
+  52   3          }
+  53   2        }
+  54   1        APAGAR();
+  55   1      }
+C51 COMPILER V9.52.0.0   MOTOR                                                             05/04/2014 03:38:27 PAGE 2   
+
+  56              
+  57                
+*** WARNING C294 IN LINE 54 OF MOTOR.c: unreachable code
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     70    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

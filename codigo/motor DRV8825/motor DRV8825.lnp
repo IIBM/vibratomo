@@ -1,0 +1,6 @@
+"STARTUP.obj",
+"rutias.obj",
+"MOTOR.obj" 
+TO "motor DRV8825" 
+RAMSIZE(256) 
+CODE( 0X0000-0X2FFF )
