@@ -1,4 +1,4 @@
-C51 COMPILER V9.52.0.0   MOTOR                                                             05/04/2014 03:38:27 PAGE 1   
+C51 COMPILER V9.52.0.0   MOTOR                                                             05/05/2014 01:05:55 PAGE 1   
 
 
 C51 COMPILER V9.52.0.0, COMPILATION OF MODULE MOTOR
@@ -12,7 +12,7 @@ line level    source
    3          // DELAY_PASOS = velocidad /768 donde velocidad son seg/mm
    4          
    5          #include <AT89X52.H>
-   6          #define RECORRIDO 100 //defino la long a recorrer en mm
+   6          #define RECORRIDO 10 //defino la long a recorrer en mm
    7          #define CONDICION 1   //condicion para funcionar
    8          
    9          
@@ -36,7 +36,7 @@ line level    source
   27          {
   28   1        char R7=0;
   29   1        
-  30   1        while(CONDICION)
+  30   1        if(CONDICION)
   31   1        {
   32   2          if(ERROR()==0)
   33   2          {
@@ -46,14 +46,14 @@ line level    source
   37   3            PRENDER();
   38   3            AVANZAR();
   39   3            DELAY_SLEEP();
-  40   3            while(R7<RECORRIDO && ERROR()==0)
+  40   3            while(R7<RECORRIDO && ERROR()==1)
   41   3            {
   42   4              AVANZAR_1mm();
   43   4              R7++;
   44   4            }
   45   3            RETROCEDER();
   46   3            R7=0;
-  47   3            while(R7<RECORRIDO && ERROR()==0)
+  47   3            while(R7<RECORRIDO && ERROR()==1)
   48   3            {
   49   4              RETROCEDER_1mm();
   50   4              R7++;
@@ -62,15 +62,14 @@ line level    source
   53   2        }
   54   1        APAGAR();
   55   1      }
-C51 COMPILER V9.52.0.0   MOTOR                                                             05/04/2014 03:38:27 PAGE 2   
+C51 COMPILER V9.52.0.0   MOTOR                                                             05/05/2014 01:05:55 PAGE 2   
 
-  56              
+  56          
   57                
-*** WARNING C294 IN LINE 54 OF MOTOR.c: unreachable code
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =     70    ----
+   CODE SIZE        =     71    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
@@ -80,4 +79,4 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
 END OF MODULE INFORMATION.
 
 
-C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

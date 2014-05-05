@@ -1,4 +1,4 @@
-BL51 BANKED LINKER/LOCATER V6.22                                                        05/04/2014  03:38:27  PAGE 1
+BL51 BANKED LINKER/LOCATER V6.22                                                        05/05/2014  01:05:55  PAGE 1
 
 
 BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
@@ -29,10 +29,10 @@ LINK MAP OF MODULE:  motor DRV8825 (?C_STARTUP)
             * * * * * * *   C O D E   M E M O R Y   * * * * * * *
             CODE    0000H     0003H     ABSOLUTE     
                     0003H     00FDH                  *** GAP ***
-            CODE    0100H     0069H     ABSOLUTE     
-                    0169H     0697H                  *** GAP ***
-            CODE    0800H     0046H     UNIT         ?PR?MAIN?MOTOR
-            CODE    0846H     000CH     UNIT         ?C_C51STARTUP
+            CODE    0100H     006DH     ABSOLUTE     
+                    016DH     0693H                  *** GAP ***
+            CODE    0800H     0047H     UNIT         ?PR?MAIN?MOTOR
+            CODE    0847H     000CH     UNIT         ?C_C51STARTUP
 
 
 
@@ -55,11 +55,11 @@ SYMBOL TABLE OF MODULE:  motor DRV8825 (?C_STARTUP)
   ----------------------------------
 
   -------         MODULE        ?C_STARTUP
-  C:0846H         SEGMENT       ?C_C51STARTUP
+  C:0847H         SEGMENT       ?C_C51STARTUP
   I:0009H         SEGMENT       ?STACK
   C:0000H         PUBLIC        ?C_STARTUP
   D:00E0H         SYMBOL        ACC
-BL51 BANKED LINKER/LOCATER V6.22                                                      05/04/2014  03:38:27  PAGE 2
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/05/2014  01:05:55  PAGE 2
 
 
   D:00F0H         SYMBOL        B
@@ -68,7 +68,7 @@ SYMBOL TABLE OF MODULE:  motor DRV8825 (?C_STARTUP)
   N:0000H         SYMBOL        IBPSTACK
   N:0100H         SYMBOL        IBPSTACKTOP
   N:0080H         SYMBOL        IDATALEN
-  C:0849H         SYMBOL        IDATALOOP
+  C:084AH         SYMBOL        IDATALOOP
   N:0000H         SYMBOL        PBPSTACK
   N:0100H         SYMBOL        PBPSTACKTOP
   N:0000H         SYMBOL        PDATALEN
@@ -77,53 +77,53 @@ SYMBOL TABLE OF MODULE:  motor DRV8825 (?C_STARTUP)
   N:0000H         SYMBOL        PPAGEENABLE
   D:00A0H         SYMBOL        PPAGE_SFR
   D:0081H         SYMBOL        SP
-  C:0846H         SYMBOL        STARTUP1
+  C:0847H         SYMBOL        STARTUP1
   N:0000H         SYMBOL        XBPSTACK
   N:0000H         SYMBOL        XBPSTACKTOP
   N:0000H         SYMBOL        XDATALEN
   N:0000H         SYMBOL        XDATASTART
   C:0000H         LINE#         126
-  C:0846H         LINE#         133
-  C:0848H         LINE#         134
-  C:0849H         LINE#         135
-  C:084AH         LINE#         136
-  C:084CH         LINE#         185
-  C:084FH         LINE#         196
+  C:0847H         LINE#         133
+  C:0849H         LINE#         134
+  C:084AH         LINE#         135
+  C:084BH         LINE#         136
+  C:084DH         LINE#         185
+  C:0850H         LINE#         196
   -------         ENDMOD        ?C_STARTUP
 
   -------         MODULE        RUTIAS
   C:0106H         PUBLIC        APAGAR
-  C:0143H         PUBLIC        AVANZAR
-  C:014FH         PUBLIC        AVANZAR_1MM
-  C:0146H         PUBLIC        AVANZAR_1_PASOM
-  C:012BH         PUBLIC        DELAY_PASOS
-  C:011AH         PUBLIC        DELAY_SLEEP
+  C:012FH         PUBLIC        AVANZAR
+  C:0153H         PUBLIC        AVANZAR_1MM
+  C:014AH         PUBLIC        AVANZAR_1_PASOM
+  C:0132H         PUBLIC        DELAY_PASOS
+  C:011EH         PUBLIC        DELAY_SLEEP
   C:0103H         PUBLIC        ERROR
-  C:013CH         PUBLIC        PASO
+  C:0143H         PUBLIC        PASO
   C:0100H         PUBLIC        PRENDER
-  C:0166H         PUBLIC        RETROCEDER
-  C:015FH         PUBLIC        RETROCEDER_1MM
-  C:0125H         SYMBOL        CICLO
-  C:0136H         SYMBOL        CICLO2
+  C:016AH         PUBLIC        RETROCEDER
+  C:0163H         PUBLIC        RETROCEDER_1MM
+  C:0129H         SYMBOL        CICLO
+  C:013DH         SYMBOL        CICLO2
   C:0114H         SYMBOL        CICLO3
   C:0109H         SYMBOL        DELAY_PASOS_R
   B:0090H.2       SYMBOL        DIR
-  C:0148H         SYMBOL        FALTA
-  C:0151H         SYMBOL        FALTA2
-  C:0158H         SYMBOL        FALTA3
-  C:0161H         SYMBOL        FALTA4
+  C:014CH         SYMBOL        FALTA
+  C:0155H         SYMBOL        FALTA2
+  C:015CH         SYMBOL        FALTA3
+  C:0165H         SYMBOL        FALTA4
   B:0090H.4       SYMBOL        FAUL
   B:0090H.5       SYMBOL        HOME
   D:0090H         SYMBOL        P1
   B:0090H.1       SYMBOL        RESET
   N:00ECH         SYMBOL        RETRASO_INF
-  N:0081H         SYMBOL        RETRASO_INF_R
+  N:002DH         SYMBOL        RETRASO_INF_R
   N:00FAH         SYMBOL        RETRASO_SUP
-BL51 BANKED LINKER/LOCATER V6.22                                                      05/04/2014  03:38:27  PAGE 3
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/05/2014  01:05:55  PAGE 3
 
 
-  N:00E1H         SYMBOL        RETRASO_SUP_R
-  C:0156H         SYMBOL        RETROCEDER_1_PASOM
+  N:00FFH         SYMBOL        RETRASO_SUP_R
+  C:015AH         SYMBOL        RETROCEDER_1_PASOM
   B:0090H.3       SYMBOL        SLEEP
   B:0090H.0       SYMBOL        STEP
   B:0088H.5       SYMBOL        TF0
@@ -142,52 +142,54 @@ SYMBOL TABLE OF MODULE:  motor DRV8825 (?C_STARTUP)
   C:010FH         LINE#         48
   C:0112H         LINE#         49
   C:0114H         LINE#         50
-  C:0117H         LINE#         51
-  C:0119H         LINE#         52
-  C:011AH         LINE#         56
-  C:011DH         LINE#         57
-  C:0120H         LINE#         58
-  C:0123H         LINE#         59
-  C:0125H         LINE#         60
-  C:0128H         LINE#         61
-  C:012AH         LINE#         62
-  C:012BH         LINE#         71
-  C:012EH         LINE#         72
-  C:0131H         LINE#         73
-  C:0134H         LINE#         74
-  C:0136H         LINE#         75
-  C:0139H         LINE#         76
-  C:013BH         LINE#         77
-  C:013CH         LINE#         87
-  C:013EH         LINE#         88
-  C:013FH         LINE#         89
-  C:0141H         LINE#         90
-  C:0142H         LINE#         91
-  C:0143H         LINE#         95
-  C:0145H         LINE#         96
-  C:0146H         LINE#         99
-  C:0148H         LINE#         100
+  C:0116H         LINE#         51
+  C:0118H         LINE#         52
+  C:011BH         LINE#         53
+  C:011DH         LINE#         54
+  C:011EH         LINE#         58
+  C:0121H         LINE#         59
+  C:0124H         LINE#         60
+  C:0127H         LINE#         61
+  C:0129H         LINE#         62
+  C:012CH         LINE#         63
+  C:012EH         LINE#         64
+  C:012FH         LINE#         73
+  C:0131H         LINE#         74
+  C:0132H         LINE#         77
+  C:0135H         LINE#         78
+  C:0138H         LINE#         79
+  C:013BH         LINE#         80
+  C:013DH         LINE#         81
+  C:0140H         LINE#         82
+  C:0142H         LINE#         83
+  C:0143H         LINE#         93
+  C:0145H         LINE#         94
+  C:0146H         LINE#         95
+  C:0148H         LINE#         96
+  C:0149H         LINE#         97
   C:014AH         LINE#         101
   C:014CH         LINE#         102
   C:014EH         LINE#         103
-  C:014FH         LINE#         106
-  C:0151H         LINE#         107
+  C:0150H         LINE#         104
+  C:0152H         LINE#         105
   C:0153H         LINE#         108
   C:0155H         LINE#         109
-  C:0156H         LINE#         112
-  C:0158H         LINE#         113
+  C:0157H         LINE#         110
+  C:0159H         LINE#         111
   C:015AH         LINE#         114
   C:015CH         LINE#         115
   C:015EH         LINE#         116
-BL51 BANKED LINKER/LOCATER V6.22                                                      05/04/2014  03:38:27  PAGE 4
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/05/2014  01:05:55  PAGE 4
 
 
-  C:015FH         LINE#         119
-  C:0161H         LINE#         120
+  C:0160H         LINE#         117
+  C:0162H         LINE#         118
   C:0163H         LINE#         121
   C:0165H         LINE#         122
-  C:0166H         LINE#         125
-  C:0168H         LINE#         126
+  C:0167H         LINE#         123
+  C:0169H         LINE#         124
+  C:016AH         LINE#         127
+  C:016CH         LINE#         128
   -------         ENDMOD        RUTIAS
 
   -------         MODULE        MOTOR
@@ -218,16 +220,19 @@ SYMBOL TABLE OF MODULE:  motor DRV8825 (?C_STARTUP)
   C:082BH         LINE#         45
   C:082EH         LINE#         46
   C:0831H         LINE#         47
-  C:083FH         LINE#         48
-  C:083FH         LINE#         49
-  C:0842H         LINE#         50
-  C:0844H         LINE#         51
+  C:0836H         LINE#         48
+  C:0836H         LINE#         49
+  C:0839H         LINE#         50
+  C:083BH         LINE#         51
+  C:0844H         LINE#         52
+  C:0844H         LINE#         53
+  C:0844H         LINE#         54
   -------         ENDPROC       MAIN
   -------         ENDMOD        MOTOR
 
 ******************************************************************************
-* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 00BEH BYTE ( 9%) *
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 00C3H BYTE ( 9%) *
 ******************************************************************************
 
-Program Size: data=10.0 xdata=0 code=190
+Program Size: data=10.0 xdata=0 code=195
 LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

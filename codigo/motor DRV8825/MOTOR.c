@@ -3,7 +3,7 @@
 // DELAY_PASOS = velocidad /768 donde velocidad son seg/mm
 
 #include <AT89X52.H>
-#define RECORRIDO 100 //defino la long a recorrer en mm
+#define RECORRIDO 10 //defino la long a recorrer en mm
 #define CONDICION 1 	//condicion para funcionar
 
 
@@ -27,7 +27,7 @@ void main ()
 {
 	char R7=0;
 	
-	while(CONDICION)
+	if(CONDICION)
 	{
 		if(ERROR()==0)
 		{
@@ -53,5 +53,5 @@ void main ()
 	}
 	APAGAR();
 }
-		
+
 			
