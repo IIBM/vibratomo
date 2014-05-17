@@ -9,7 +9,8 @@ PUBLIC PRENDER
 PUBLIC APAGAR
 PUBLIC ERROR
 PUBLIC RETROCEDER_1mm
-
+PUBLIC HABILITAR_DATOS
+PUBLIC LCD_OCUPADO
 
 ;24 pasos del motor son 1,008 mm
 ;si 1/32 pasos hace el DRV entonces 768 pasos DRV son 1,008mm
@@ -21,14 +22,43 @@ DIR				equ	p1.2
 SLEEP			equ	P1.3
 FAUL			equ	P1.4
 HOME			equ	P1.5
-RETRASO_SUP		equ	250		;sale de hacer (65536- retardo deseado) + 6 donde 65536 es el numero maxio del temporizador con 16 bit y 6 el tiempo para setear las variables
-RETRASO_INF		equ 236		;retraso sup son los primero 8 bit y el inf son los ultimos 8 
-RETRASO_SUP_R	equ	255		;retraso superior e inferior para el retorceso, sale de hacer la misma cuenta que antes
-RETRASO_INF_R	equ 45		; la velocidad es de 6mm/seg
+
+DELAY_AVANCE	equ	1300	;escrito en us
+DELAY_RETROCESO	equ 217		;escrito en us
+
+RETRASO_SUP		equ	255-((DELAY_AVANCE-10)/256)						;sale de hacer (65536- retardo deseado) + 6 donde 65536 es el numero maxio del temporizador con 16 bit y 6 el tiempo para setear las variables
+RETRASO_INF		equ 255-((DELAY_AVANCE-10)-RETRASO_SUP*256)			;retraso sup son los primero 8 bit y el inf son los ultimos 8 
+RETRASO_SUP_R	equ	255-((DELAY_RETROCESO-10)/256)			;retraso superior e inferior para el retorceso, sale de hacer la misma cuenta que antes
+RETRASO_INF_R	equ 255-((DELAY_RETROCESO-10)-RETRASO_SUP_R*256)		; la velocidad es de 6mm/seg
+
+RS_LCD			equ P2.5
+RW_LCD			equ P2.4
+ENEBLE_LCD		equ P2.6
+DATA4_LCD		equ	P2.0
+DATA5_LCD		equ	P2.1
+DATA6_LCD		equ	P2.2
+DATA7_LCD		equ	P2.3
+
 
 
 cseg at 0x0100
 
+HABILITAR_DATOS:			; DA LA VENTANA NECESARIA AL ENEBLE PARA QUE LOS DATOS SE TRASMITAN AL DISPLAY 
+			SETB ENEBLE_LCD
+			CLR ENEBLE_LCD
+			RET
+
+LCD_OCUPADO:
+			SETB DATA7_LCD
+			CLR RS_LCD
+			SETB RW_LCD
+			SETB ENEBLE_LCD
+	CHECK:	CLR ENEBLE_LCD
+			SETB ENEBLE_LCD
+			JB DATA7_LCD, CHECK
+			CLR ENEBLE_LCD
+			CLR RW_LCD
+			RET
 PRENDER:
 			SETB SLEEP
 			RET
@@ -43,16 +73,30 @@ APAGAR:
 			RET
 
 DELAY_PASOS_R:						;retardo para el retroceso
+			MOV R6,#RETRASO_SUP_R
+			MOV R7,#RETRASO_INF_R
+			CALL DELAY
+			RET
+
+DELAY_PASOS:			; es un delay de 1.3ms
+			MOV R6,#RETRASO_SUP
+			MOV R7,#RETRASO_INF
+			CALL DELAY
+			RET
+
+;			MOV R1,#3
+;	LAZO5:	MOV R2,#215
+;	LAZO6:	DJNZ R2,LAZO6
+;			DJNZ R1,LAZO5
+;			RET
+DELAY:		
 			MOV TMOD, #01H
-			MOV TH0,#RETRASO_SUP_R
-			MOV TL0,#RETRASO_INF_R
+			MOV TH0,R6
+			MOV TL0,R7
 			SETB TR0
-	CICLO3:	mov R6,TH0
-			mov R5,TL0
-			JNB TF0,CICLO3
+	CICLO2:	JNB TF0,CICLO2
 			CLR TF0
 			RET
-		
 		
 DELAY_SLEEP:			;es un delay de 1.7ms. Es el tiempo que necesita DRV desde que se lo saca de modo sleep hasta que se le mande la señal para hacer un paso.
 			MOV TMOD,#01H
@@ -73,22 +117,6 @@ AVANZAR:
 			SETB DIR ;DIR=1 avanza
 			RET	
 			
-DELAY_PASOS:			; es un delay de 1.3ms
-			MOV TMOD, #01H
-			MOV TH0,#RETRASO_SUP
-			MOV TL0,#RETRASO_INF
-			SETB TR0
-	CICLO2:	JNB TF0,CICLO2
-			CLR TF0
-			RET
-
-;			MOV R1,#3
-;	LAZO5:	MOV R2,#215
-;	LAZO6:	DJNZ R2,LAZO6
-;			DJNZ R1,LAZO5
-;			RET
-
-
 PASO:					; manda una señal de '1' y '0' para que el DRV haga 1/32 paso
 			SETB	STEP
 			NOP
@@ -126,7 +154,4 @@ RETROCEDER_1mm:				;avanza 1 mm
 RETROCEDER:
 			CLR DIR
 			RET
-
-
-	
 end

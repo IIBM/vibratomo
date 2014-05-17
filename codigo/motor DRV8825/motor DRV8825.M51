@@ -1,9 +1,9 @@
-BL51 BANKED LINKER/LOCATER V6.22                                                        05/05/2014  01:05:55  PAGE 1
+BL51 BANKED LINKER/LOCATER V6.22                                                        05/17/2014  13:22:10  PAGE 1
 
 
 BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
-C:\PROGRAM FILES (X86)\KEIL\C51\BIN\BL51.EXE STARTUP.obj, rutias.obj, MOTOR.obj TO motor DRV8825 RAMSIZE (256) CODE (0X0
->> 000-0X2FFF)
+C:\PROGRAM FILES (X86)\KEIL\C51\BIN\BL51.EXE STARTUP.obj, rutias.obj, MOTOR.obj, Display LCD.obj TO motor DRV8825 RAMSIZ
+>> E (256) CODE (0X0000-0X2FFF)
 
 
 MEMORY MODEL: SMALL
@@ -13,6 +13,8 @@ INPUT MODULES INCLUDED:
   STARTUP.obj (?C_STARTUP)
   rutias.obj (RUTIAS)
   MOTOR.obj (MOTOR)
+  Display LCD.obj (DISPLAY_LCD)
+  C:\PROGRAM FILES (X86)\KEIL\C51\LIB\C51S.LIB (?C?CLDPTR)
 
 
 LINK MAP OF MODULE:  motor DRV8825 (?C_STARTUP)
@@ -23,29 +25,81 @@ LINK MAP OF MODULE:  motor DRV8825 (?C_STARTUP)
 
             * * * * * * *   D A T A   M E M O R Y   * * * * * * *
             REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
-            DATA    0008H     0001H     UNIT         _DATA_GROUP_
-            IDATA   0009H     0001H     UNIT         ?STACK
+            DATA    0008H     0005H     UNIT         _DATA_GROUP_
+            DATA    000DH     0001H     UNIT         ?DT?MOTOR?MOTOR
+            IDATA   000EH     0001H     UNIT         ?STACK
 
             * * * * * * *   C O D E   M E M O R Y   * * * * * * *
             CODE    0000H     0003H     ABSOLUTE     
                     0003H     00FDH                  *** GAP ***
-            CODE    0100H     006DH     ABSOLUTE     
-                    016DH     0693H                  *** GAP ***
-            CODE    0800H     0047H     UNIT         ?PR?MAIN?MOTOR
-            CODE    0847H     000CH     UNIT         ?C_C51STARTUP
+            CODE    0100H     007DH     ABSOLUTE     
+                    017DH     0683H                  *** GAP ***
+            CODE    0800H     0059H     UNIT         ?CO?DISPLAY_LCD
+            CODE    0859H     0048H     UNIT         ?PR?_ESCRIBIR_VECTOR?DISPLAY_LCD
+            CODE    08A1H     0047H     UNIT         ?PR?MOTOR?MOTOR
+            CODE    08E8H     0046H     UNIT         ?PR?INICIALIZACION_DISPLAY?DISPLAY_LCD
+            CODE    092EH     003DH     UNIT         ?PR?MAIN?DISPLAY_LCD
+            CODE    096BH     0019H     UNIT         ?C?LIB_CODE
+            CODE    0984H     0013H     UNIT         ?PR?_DELAY_MS?DISPLAY_LCD
+            CODE    0997H     0013H     UNIT         ?PR?_LCD_COMANDO?DISPLAY_LCD
+            CODE    09AAH     000FH     UNIT         ?PR?_ESCRIBIR_NIBBLE?DISPLAY_LCD
+            CODE    09B9H     000EH     UNIT         ?PR?_ESCRIBIR_BYTE_LCD?DISPLAY_LCD
+            CODE    09C7H     000DH     UNIT         ?PR?DELAY_2SEG?DISPLAY_LCD
+            CODE    09D4H     000CH     UNIT         ?C_C51STARTUP
+            CODE    09E0H     000CH     UNIT         ?PR?BORRAR_LCD?DISPLAY_LCD
+            CODE    09ECH     000CH     UNIT         ?PR?_ESCRIBIR_DISPLAY?DISPLAY_LCD
+            CODE    09F8H     0007H     UNIT         ?PR?_POSICION_LCD?DISPLAY_LCD
 
 
 
 OVERLAY MAP OF MODULE:   motor DRV8825 (?C_STARTUP)
 
 
-SEGMENT                          DATA_GROUP 
-  +--> CALLED SEGMENT          START    LENGTH
-----------------------------------------------
-?C_C51STARTUP                  -----    -----
-  +--> ?PR?MAIN?MOTOR
+SEGMENT                                          DATA_GROUP 
+  +--> CALLED SEGMENT                          START    LENGTH
+--------------------------------------------------------------
+?C_C51STARTUP                                  -----    -----
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/17/2014  13:22:10  PAGE 2
 
-?PR?MAIN?MOTOR                 0008H    0001H
+
+  +--> ?PR?MAIN?DISPLAY_LCD
+
+?PR?MAIN?DISPLAY_LCD                           -----    -----
+  +--> ?PR?INICIALIZACION_DISPLAY?DISPLAY_LCD
+  +--> ?CO?DISPLAY_LCD
+  +--> ?PR?_ESCRIBIR_VECTOR?DISPLAY_LCD
+  +--> ?PR?DELAY_2SEG?DISPLAY_LCD
+  +--> ?PR?BORRAR_LCD?DISPLAY_LCD
+
+?PR?INICIALIZACION_DISPLAY?DISPLAY_LCD         -----    -----
+  +--> ?PR?_DELAY_MS?DISPLAY_LCD
+  +--> ?PR?_LCD_COMANDO?DISPLAY_LCD
+  +--> ?PR?BORRAR_LCD?DISPLAY_LCD
+
+?PR?_LCD_COMANDO?DISPLAY_LCD                   -----    -----
+  +--> ?PR?_ESCRIBIR_BYTE_LCD?DISPLAY_LCD
+  +--> ?PR?_DELAY_MS?DISPLAY_LCD
+
+?PR?_ESCRIBIR_BYTE_LCD?DISPLAY_LCD             000CH    0001H
+  +--> ?PR?_ESCRIBIR_NIBBLE?DISPLAY_LCD
+
+?PR?BORRAR_LCD?DISPLAY_LCD                     -----    -----
+  +--> ?PR?_LCD_COMANDO?DISPLAY_LCD
+  +--> ?PR?_DELAY_MS?DISPLAY_LCD
+
+?PR?_ESCRIBIR_VECTOR?DISPLAY_LCD               0008H    0004H
+  +--> ?PR?_POSICION_LCD?DISPLAY_LCD
+  +--> ?PR?_ESCRIBIR_DISPLAY?DISPLAY_LCD
+  +--> ?PR?_DELAY_MS?DISPLAY_LCD
+
+?PR?_POSICION_LCD?DISPLAY_LCD                  -----    -----
+  +--> ?PR?_LCD_COMANDO?DISPLAY_LCD
+
+?PR?_ESCRIBIR_DISPLAY?DISPLAY_LCD              -----    -----
+  +--> ?PR?_ESCRIBIR_BYTE_LCD?DISPLAY_LCD
+
+?PR?DELAY_2SEG?DISPLAY_LCD                     -----    -----
+  +--> ?PR?_DELAY_MS?DISPLAY_LCD
 
 
 
@@ -55,20 +109,20 @@ SYMBOL TABLE OF MODULE:  motor DRV8825 (?C_STARTUP)
   ----------------------------------
 
   -------         MODULE        ?C_STARTUP
-  C:0847H         SEGMENT       ?C_C51STARTUP
-  I:0009H         SEGMENT       ?STACK
+  C:09D4H         SEGMENT       ?C_C51STARTUP
+  I:000EH         SEGMENT       ?STACK
   C:0000H         PUBLIC        ?C_STARTUP
   D:00E0H         SYMBOL        ACC
-BL51 BANKED LINKER/LOCATER V6.22                                                      05/05/2014  01:05:55  PAGE 2
-
-
   D:00F0H         SYMBOL        B
   D:0083H         SYMBOL        DPH
   D:0082H         SYMBOL        DPL
   N:0000H         SYMBOL        IBPSTACK
   N:0100H         SYMBOL        IBPSTACKTOP
   N:0080H         SYMBOL        IDATALEN
-  C:084AH         SYMBOL        IDATALOOP
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/17/2014  13:22:10  PAGE 3
+
+
+  C:09D7H         SYMBOL        IDATALOOP
   N:0000H         SYMBOL        PBPSTACK
   N:0100H         SYMBOL        PBPSTACKTOP
   N:0000H         SYMBOL        PDATALEN
@@ -77,53 +131,66 @@ SYMBOL TABLE OF MODULE:  motor DRV8825 (?C_STARTUP)
   N:0000H         SYMBOL        PPAGEENABLE
   D:00A0H         SYMBOL        PPAGE_SFR
   D:0081H         SYMBOL        SP
-  C:0847H         SYMBOL        STARTUP1
+  C:09D4H         SYMBOL        STARTUP1
   N:0000H         SYMBOL        XBPSTACK
   N:0000H         SYMBOL        XBPSTACKTOP
   N:0000H         SYMBOL        XDATALEN
   N:0000H         SYMBOL        XDATASTART
   C:0000H         LINE#         126
-  C:0847H         LINE#         133
-  C:0849H         LINE#         134
-  C:084AH         LINE#         135
-  C:084BH         LINE#         136
-  C:084DH         LINE#         185
-  C:0850H         LINE#         196
+  C:09D4H         LINE#         133
+  C:09D6H         LINE#         134
+  C:09D7H         LINE#         135
+  C:09D8H         LINE#         136
+  C:09DAH         LINE#         185
+  C:09DDH         LINE#         196
   -------         ENDMOD        ?C_STARTUP
 
   -------         MODULE        RUTIAS
-  C:0106H         PUBLIC        APAGAR
-  C:012FH         PUBLIC        AVANZAR
-  C:0153H         PUBLIC        AVANZAR_1MM
-  C:014AH         PUBLIC        AVANZAR_1_PASOM
-  C:0132H         PUBLIC        DELAY_PASOS
-  C:011EH         PUBLIC        DELAY_SLEEP
-  C:0103H         PUBLIC        ERROR
-  C:0143H         PUBLIC        PASO
-  C:0100H         PUBLIC        PRENDER
-  C:016AH         PUBLIC        RETROCEDER
-  C:0163H         PUBLIC        RETROCEDER_1MM
-  C:0129H         SYMBOL        CICLO
-  C:013DH         SYMBOL        CICLO2
-  C:0114H         SYMBOL        CICLO3
-  C:0109H         SYMBOL        DELAY_PASOS_R
+  C:011FH         PUBLIC        APAGAR
+  C:0150H         PUBLIC        AVANZAR
+  C:0163H         PUBLIC        AVANZAR_1MM
+  C:015AH         PUBLIC        AVANZAR_1_PASOM
+  C:0129H         PUBLIC        DELAY_PASOS
+  C:013FH         PUBLIC        DELAY_SLEEP
+  C:011CH         PUBLIC        ERROR
+  C:0100H         PUBLIC        HABILITAR_DATOS
+  C:0105H         PUBLIC        LCD_OCUPADO
+  C:0153H         PUBLIC        PASO
+  C:0119H         PUBLIC        PRENDER
+  C:017AH         PUBLIC        RETROCEDER
+  C:0173H         PUBLIC        RETROCEDER_1MM
+  C:010DH         SYMBOL        CHECK
+  C:014AH         SYMBOL        CICLO
+  C:0139H         SYMBOL        CICLO2
+  B:00A0H.0       SYMBOL        DATA4_LCD
+  B:00A0H.1       SYMBOL        DATA5_LCD
+  B:00A0H.2       SYMBOL        DATA6_LCD
+  B:00A0H.3       SYMBOL        DATA7_LCD
+  C:0130H         SYMBOL        DELAY
+  N:0514H         SYMBOL        DELAY_AVANCE
+  C:0122H         SYMBOL        DELAY_PASOS_R
+  N:00D9H         SYMBOL        DELAY_RETROCESO
   B:0090H.2       SYMBOL        DIR
-  C:014CH         SYMBOL        FALTA
-  C:0155H         SYMBOL        FALTA2
-  C:015CH         SYMBOL        FALTA3
-  C:0165H         SYMBOL        FALTA4
+  B:00A0H.6       SYMBOL        ENEBLE_LCD
+  C:015CH         SYMBOL        FALTA
+  C:0165H         SYMBOL        FALTA2
+  C:016CH         SYMBOL        FALTA3
+  C:0175H         SYMBOL        FALTA4
   B:0090H.4       SYMBOL        FAUL
   B:0090H.5       SYMBOL        HOME
   D:0090H         SYMBOL        P1
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/17/2014  13:22:10  PAGE 4
+
+
+  D:00A0H         SYMBOL        P2
   B:0090H.1       SYMBOL        RESET
-  N:00ECH         SYMBOL        RETRASO_INF
-  N:002DH         SYMBOL        RETRASO_INF_R
+  N:F5F5H         SYMBOL        RETRASO_INF
+  N:FF30H         SYMBOL        RETRASO_INF_R
   N:00FAH         SYMBOL        RETRASO_SUP
-BL51 BANKED LINKER/LOCATER V6.22                                                      05/05/2014  01:05:55  PAGE 3
-
-
   N:00FFH         SYMBOL        RETRASO_SUP_R
-  C:015AH         SYMBOL        RETROCEDER_1_PASOM
+  C:016AH         SYMBOL        RETROCEDER_1_PASOM
+  B:00A0H.5       SYMBOL        RS_LCD
+  B:00A0H.4       SYMBOL        RW_LCD
   B:0090H.3       SYMBOL        SLEEP
   B:0090H.0       SYMBOL        STEP
   B:0088H.5       SYMBOL        TF0
@@ -131,108 +198,295 @@ SYMBOL TABLE OF MODULE:  motor DRV8825 (?C_STARTUP)
   D:008AH         SYMBOL        TL0
   D:0089H         SYMBOL        TMOD
   B:0088H.4       SYMBOL        TR0
-  C:0100H         LINE#         33
-  C:0102H         LINE#         34
-  C:0103H         LINE#         37
-  C:0105H         LINE#         38
-  C:0106H         LINE#         42
-  C:0108H         LINE#         43
-  C:0109H         LINE#         46
-  C:010CH         LINE#         47
-  C:010FH         LINE#         48
-  C:0112H         LINE#         49
-  C:0114H         LINE#         50
-  C:0116H         LINE#         51
-  C:0118H         LINE#         52
-  C:011BH         LINE#         53
-  C:011DH         LINE#         54
-  C:011EH         LINE#         58
-  C:0121H         LINE#         59
-  C:0124H         LINE#         60
-  C:0127H         LINE#         61
-  C:0129H         LINE#         62
-  C:012CH         LINE#         63
-  C:012EH         LINE#         64
-  C:012FH         LINE#         73
-  C:0131H         LINE#         74
-  C:0132H         LINE#         77
-  C:0135H         LINE#         78
-  C:0138H         LINE#         79
-  C:013BH         LINE#         80
-  C:013DH         LINE#         81
-  C:0140H         LINE#         82
-  C:0142H         LINE#         83
-  C:0143H         LINE#         93
-  C:0145H         LINE#         94
-  C:0146H         LINE#         95
-  C:0148H         LINE#         96
-  C:0149H         LINE#         97
-  C:014AH         LINE#         101
-  C:014CH         LINE#         102
-  C:014EH         LINE#         103
-  C:0150H         LINE#         104
-  C:0152H         LINE#         105
-  C:0153H         LINE#         108
-  C:0155H         LINE#         109
-  C:0157H         LINE#         110
-  C:0159H         LINE#         111
-  C:015AH         LINE#         114
-  C:015CH         LINE#         115
-  C:015EH         LINE#         116
-BL51 BANKED LINKER/LOCATER V6.22                                                      05/05/2014  01:05:55  PAGE 4
+  C:0100H         LINE#         47
+  C:0102H         LINE#         48
+  C:0104H         LINE#         49
+  C:0105H         LINE#         52
+  C:0107H         LINE#         53
+  C:0109H         LINE#         54
+  C:010BH         LINE#         55
+  C:010DH         LINE#         56
+  C:010FH         LINE#         57
+  C:0111H         LINE#         58
+  C:0114H         LINE#         59
+  C:0116H         LINE#         60
+  C:0118H         LINE#         61
+  C:0119H         LINE#         63
+  C:011BH         LINE#         64
+  C:011CH         LINE#         67
+  C:011EH         LINE#         68
+  C:011FH         LINE#         72
+  C:0121H         LINE#         73
+  C:0122H         LINE#         76
+  C:0124H         LINE#         77
+  C:0126H         LINE#         78
+  C:0128H         LINE#         79
+  C:0129H         LINE#         82
+  C:012BH         LINE#         83
+  C:012DH         LINE#         84
+  C:012FH         LINE#         85
+  C:0130H         LINE#         93
+  C:0133H         LINE#         94
+  C:0135H         LINE#         95
+  C:0137H         LINE#         96
+  C:0139H         LINE#         97
+  C:013CH         LINE#         98
+  C:013EH         LINE#         99
+  C:013FH         LINE#         102
+  C:0142H         LINE#         103
+  C:0145H         LINE#         104
+  C:0148H         LINE#         105
+  C:014AH         LINE#         106
+  C:014DH         LINE#         107
+  C:014FH         LINE#         108
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/17/2014  13:22:10  PAGE 5
 
 
-  C:0160H         LINE#         117
-  C:0162H         LINE#         118
-  C:0163H         LINE#         121
-  C:0165H         LINE#         122
-  C:0167H         LINE#         123
-  C:0169H         LINE#         124
-  C:016AH         LINE#         127
-  C:016CH         LINE#         128
+  C:0150H         LINE#         117
+  C:0152H         LINE#         118
+  C:0153H         LINE#         121
+  C:0155H         LINE#         122
+  C:0156H         LINE#         123
+  C:0158H         LINE#         124
+  C:0159H         LINE#         125
+  C:015AH         LINE#         129
+  C:015CH         LINE#         130
+  C:015EH         LINE#         131
+  C:0160H         LINE#         132
+  C:0162H         LINE#         133
+  C:0163H         LINE#         136
+  C:0165H         LINE#         137
+  C:0167H         LINE#         138
+  C:0169H         LINE#         139
+  C:016AH         LINE#         142
+  C:016CH         LINE#         143
+  C:016EH         LINE#         144
+  C:0170H         LINE#         145
+  C:0172H         LINE#         146
+  C:0173H         LINE#         149
+  C:0175H         LINE#         150
+  C:0177H         LINE#         151
+  C:0179H         LINE#         152
+  C:017AH         LINE#         155
+  C:017CH         LINE#         156
   -------         ENDMOD        RUTIAS
 
   -------         MODULE        MOTOR
   C:0000H         SYMBOL        _ICE_DUMMY_
-  C:0800H         PUBLIC        main
-  -------         PROC          MAIN
+  C:08A1H         PUBLIC        MOTOR
+  -------         PROC          MOTOR
   -------         DO            
-  D:0008H         SYMBOL        R7
+  D:000DH         SYMBOL        R7
   -------         ENDDO         
-  C:0800H         LINE#         26
-  C:0800H         LINE#         27
-  C:0800H         LINE#         28
-  C:0803H         LINE#         30
-  C:0803H         LINE#         31
-  C:0803H         LINE#         32
-  C:0808H         LINE#         33
-  C:0808H         LINE#         34
-  C:080BH         LINE#         35
-  C:080DH         LINE#         36
-  C:080DH         LINE#         37
-  C:0810H         LINE#         38
-  C:0813H         LINE#         39
-  C:0816H         LINE#         40
-  C:0824H         LINE#         41
-  C:0824H         LINE#         42
-  C:0827H         LINE#         43
-  C:0829H         LINE#         44
-  C:082BH         LINE#         45
-  C:082EH         LINE#         46
-  C:0831H         LINE#         47
-  C:0836H         LINE#         48
-  C:0836H         LINE#         49
-  C:0839H         LINE#         50
-  C:083BH         LINE#         51
-  C:0844H         LINE#         52
-  C:0844H         LINE#         53
-  C:0844H         LINE#         54
-  -------         ENDPROC       MAIN
+  C:08A1H         LINE#         25
+  C:08A1H         LINE#         26
+  C:08A1H         LINE#         27
+  C:08A4H         LINE#         29
+  C:08A4H         LINE#         30
+  C:08A4H         LINE#         31
+  C:08A9H         LINE#         32
+  C:08A9H         LINE#         33
+  C:08ACH         LINE#         34
+  C:08AEH         LINE#         35
+  C:08AEH         LINE#         36
+  C:08B1H         LINE#         37
+  C:08B4H         LINE#         38
+  C:08B7H         LINE#         39
+  C:08C5H         LINE#         40
+  C:08C5H         LINE#         41
+  C:08C8H         LINE#         42
+  C:08CAH         LINE#         43
+  C:08CCH         LINE#         44
+  C:08CFH         LINE#         45
+  C:08D2H         LINE#         46
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/17/2014  13:22:10  PAGE 6
+
+
+  C:08D7H         LINE#         47
+  C:08D7H         LINE#         48
+  C:08DAH         LINE#         49
+  C:08DCH         LINE#         50
+  C:08E5H         LINE#         51
+  C:08E5H         LINE#         52
+  C:08E5H         LINE#         53
+  -------         ENDPROC       MOTOR
   -------         ENDMOD        MOTOR
 
+  -------         MODULE        DISPLAY_LCD
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  C:09E0H         PUBLIC        BORRAR_LCD
+  D:00A0H         PUBLIC        P2
+  C:08E8H         PUBLIC        INICIALIZACION_DISPLAY
+  C:0859H         PUBLIC        _ESCRIBIR_VECTOR
+  B:00A0H.7       PUBLIC        P2_7
+  C:09F8H         PUBLIC        _POSICION_LCD
+  C:09B9H         PUBLIC        _ESCRIBIR_BYTE_LCD
+  C:092EH         PUBLIC        main
+  D:0089H         PUBLIC        TMOD
+  C:0997H         PUBLIC        _LCD_COMANDO
+  B:0088H.5       PUBLIC        TF0
+  D:008CH         PUBLIC        TH0
+  C:09ECH         PUBLIC        _ESCRIBIR_DISPLAY
+  D:008AH         PUBLIC        TL0
+  B:0088H.4       PUBLIC        TR0
+  C:09C7H         PUBLIC        DELAY_2SEG
+  C:09AAH         PUBLIC        _ESCRIBIR_NIBBLE
+  C:0988H         PUBLIC        _DELAY_MS
+  -------         PROC          MAIN
+  C:092EH         LINE#         60
+  C:092EH         LINE#         61
+  C:092EH         LINE#         62
+  C:0931H         LINE#         63
+  C:093CH         LINE#         65
+  C:093FH         LINE#         66
+  C:0942H         LINE#         67
+  C:094DH         LINE#         68
+  C:0950H         LINE#         69
+  C:095BH         LINE#         70
+  C:095DH         LINE#         71
+  C:0960H         LINE#         72
+  C:0960H         LINE#         73
+  C:0960H         LINE#         74
+  -------         ENDPROC       MAIN
+  -------         PROC          INICIALIZACION_DISPLAY
+  C:08E8H         LINE#         78
+  C:08E8H         LINE#         79
+  C:08E8H         LINE#         80
+  C:08EFH         LINE#         82
+  C:08F2H         LINE#         83
+  C:08F5H         LINE#         84
+  C:08F8H         LINE#         86
+  C:08FBH         LINE#         87
+  C:08FEH         LINE#         88
+  C:0905H         LINE#         90
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/17/2014  13:22:10  PAGE 7
+
+
+  C:0908H         LINE#         91
+  C:090BH         LINE#         92
+  C:090EH         LINE#         93
+  C:0911H         LINE#         94
+  C:0914H         LINE#         95
+  C:0917H         LINE#         100
+  C:091CH         LINE#         101
+  C:0921H         LINE#         102
+  C:0924H         LINE#         103
+  C:0929H         LINE#         104
+  -------         ENDPROC       INICIALIZACION_DISPLAY
+  -------         PROC          BORRAR_LCD
+  C:09E0H         LINE#         107
+  C:09E0H         LINE#         108
+  C:09E0H         LINE#         109
+  C:09E5H         LINE#         110
+  -------         ENDPROC       BORRAR_LCD
+  C:0984H         SYMBOL        L?0024
+  -------         PROC          L?0023
+  -------         ENDPROC       L?0023
+  C:0984H         SYMBOL        L?0024
+  -------         PROC          _DELAY_MS
+  D:0007H         SYMBOL        alta
+  D:0005H         SYMBOL        baja
+  C:0988H         LINE#         113
+  C:0988H         LINE#         114
+  C:0988H         LINE#         115
+  C:098BH         LINE#         116
+  C:098DH         LINE#         117
+  C:098FH         LINE#         118
+  C:0991H         LINE#         119
+  C:0994H         LINE#         120
+  C:0994H         LINE#         121
+  C:0994H         LINE#         122
+  C:0996H         LINE#         123
+  -------         ENDPROC       _DELAY_MS
+  -------         PROC          DELAY_2SEG
+  -------         DO            
+  D:0006H         SYMBOL        CONT
+  -------         ENDDO         
+  C:09C7H         LINE#         125
+  C:09C7H         LINE#         126
+  C:09C7H         LINE#         128
+  C:09C9H         LINE#         129
+  C:09C9H         LINE#         130
+  C:09CFH         LINE#         131
+  C:09D3H         LINE#         132
+  -------         ENDPROC       DELAY_2SEG
+  -------         PROC          _LCD_COMANDO
+  D:0007H         SYMBOL        c
+  C:0997H         LINE#         134
+  C:0997H         LINE#         135
+  C:0997H         LINE#         136
+  C:099AH         LINE#         137
+  C:099DH         LINE#         138
+  C:09A0H         LINE#         139
+  C:09A3H         LINE#         140
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/17/2014  13:22:10  PAGE 8
+
+
+  -------         ENDPROC       _LCD_COMANDO
+  -------         PROC          _ESCRIBIR_VECTOR
+  D:0008H         SYMBOL        string
+  D:000BH         SYMBOL        posicion
+  C:0859H         LINE#         143
+  C:0861H         LINE#         144
+  C:0861H         LINE#         145
+  C:0866H         LINE#         147
+  C:0871H         LINE#         148
+  C:0871H         LINE#         154
+  C:0876H         LINE#         155
+  C:0876H         LINE#         156
+  C:087DH         LINE#         157
+  C:087DH         LINE#         158
+  C:088AH         LINE#         159
+  C:0891H         LINE#         160
+  C:0893H         LINE#         161
+  C:08A0H         LINE#         162
+  -------         ENDPROC       _ESCRIBIR_VECTOR
+  -------         PROC          _POSICION_LCD
+  D:0007H         SYMBOL        posicion
+  C:09F8H         LINE#         164
+  C:09F8H         LINE#         165
+  C:09F8H         LINE#         166
+  -------         ENDPROC       _POSICION_LCD
+  -------         PROC          _ESCRIBIR_DISPLAY
+  D:0007H         SYMBOL        c
+  C:09ECH         LINE#         169
+  C:09ECH         LINE#         170
+  C:09ECH         LINE#         171
+  C:09EFH         LINE#         172
+  C:09F2H         LINE#         173
+  C:09F5H         LINE#         175
+  -------         ENDPROC       _ESCRIBIR_DISPLAY
+  -------         PROC          _ESCRIBIR_BYTE_LCD
+  D:000CH         SYMBOL        c
+  C:09B9H         LINE#         177
+  C:09BBH         LINE#         178
+  C:09BBH         LINE#         179
+  C:09BEH         LINE#         180
+  -------         ENDPROC       _ESCRIBIR_BYTE_LCD
+  -------         PROC          _ESCRIBIR_NIBBLE
+  D:0007H         SYMBOL        nibble
+  C:09AAH         LINE#         183
+  C:09AAH         LINE#         184
+  C:09AAH         LINE#         185
+  C:09ADH         LINE#         186
+  C:09B0H         LINE#         187
+  C:09B6H         LINE#         189
+  -------         ENDPROC       _ESCRIBIR_NIBBLE
+  -------         ENDMOD        DISPLAY_LCD
+
+  -------         MODULE        ?C?CLDPTR
+  C:096BH         PUBLIC        ?C?CLDPTR
+  -------         ENDMOD        ?C?CLDPTR
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/17/2014  13:22:10  PAGE 9
+
+
+    SEGMENT: ?PR?MOTOR?MOTOR
+
 ******************************************************************************
-* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 00C3H BYTE ( 9%) *
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 0266H BYTE (29%) *
 ******************************************************************************
 
-Program Size: data=10.0 xdata=0 code=195
-LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)
+Program Size: data=15.0 xdata=0 code=639
+LINK/LOCATE RUN COMPLETE.  1 WARNING(S),  0 ERROR(S)

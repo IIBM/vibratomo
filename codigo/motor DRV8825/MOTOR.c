@@ -7,7 +7,6 @@
 #define CONDICION 1 	//condicion para funcionar
 
 
-extern void DELAY();
 extern void PASO();
 extern void DELAY_SLEEP();
 extern void AVANZAR();
@@ -23,7 +22,7 @@ extern void RETROCEDER_1mm();
 
 //volatile uint8_t dis = 0;
 
-void main ()
+void MOTOR ()
 {
 	char R7=0;
 	
