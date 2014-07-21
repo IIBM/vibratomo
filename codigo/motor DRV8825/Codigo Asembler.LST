@@ -1,0 +1,234 @@
+A51 MACRO ASSEMBLER  CODIGO_ASEMBLER                                                      07/21/2014 18:12:10 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.02b
+OBJECT MODULE PLACED IN Codigo Asembler.OBJ
+ASSEMBLER INVOKED BY: C:\Program Files (x86)\keil\C51\BIN\A51.EXE Codigo Asembler.asm SET(SMALL) DEBUG EP
+
+LOC  OBJ            LINE     SOURCE
+
+                       1     PUBLIC PASO                                             ;para que las pueda ver desde C las
+                              declaro como "public"
+                       2     PUBLIC DELAY_SLEEP
+                       3     PUBLIC AVANZAR
+                       4     PUBLIC RETROCEDER
+                       5     PUBLIC DELAY_PASOS
+                       6     PUBLIC AVANZAR_1mm
+                       7     PUBLIC PRENDER
+                       8     PUBLIC APAGAR
+                       9     PUBLIC RETROCEDER_1mm
+                      10     PUBLIC HABILITAR_DATOS
+                      11     PUBLIC DELAY_ALTO
+                      12     PUBLIC DELAY_BAJO
+                      13     PUBLIC HABILITAR_INTERRUPCION
+                      14     PUBLIC DESABILITAR_INTERRUPCION
+                      15     
+                      16     ;12 pasos del motor son 1,008 mm
+                      17     ;si 1/32 pasos hace el DRV entonces 384 pasos DRV son 1,008mm
+                      18     ; DELAY_AVANCE = 1000000/ (384 * velocidad) donde velocidad son mm/seg
+                      19     
+  00B3                20     STEP                    equ     P3.3    ;etiqueto al puerto con el nombre del pin del DRV. 
+  00B4                21     RESET                   equ     P3.4
+  0091                22     DIR                             equ     P1.1
+  00B5                23     SLEEP                   equ     P3.5
+  0090                24     FAUL                    equ     P1.0
+  00B6                25     HOME                    equ     P3.6
+                      26     
+                      27     
+  00D9                28     DELAY_RETROCESO equ 217         ;escrito en us
+                      29     
+  00FF                30     RETRASO_SUP_R   equ     255-((DELAY_RETROCESO-10)/256)                  ;retraso superior e
+                              inferior para el retorceso, sale de hacer la misma cuenta que antes
+  0030                31     RETRASO_INF_R   equ 255-((DELAY_RETROCESO-10)-(255-RETRASO_SUP_R)*256)          ; la veloci
+                             dad es de 6mm/seg
+                      32     
+  00A5                33     RS_LCD                  equ P2.5        ;etiqueto al puerto con el nombre del pin del displ
+                             ay
+  00A4                34     RW_LCD                  equ P2.4
+  00A6                35     ENEBLE_LCD              equ P2.6
+  00A0                36     DATA4_LCD               equ     P2.0
+  00A1                37     DATA5_LCD               equ     P2.1
+  00A2                38     DATA6_LCD               equ     P2.2
+  00A3                39     DATA7_LCD               equ     P2.3
+                      40     
+  00A7                41     OK                              equ     P2.7    ;etiqueto al puerto con el nombre del boton
+  0093                42     ARRIBA                  equ     P1.3
+  0092                43     ABAJO                   equ     P1.2
+  00B2                44     STOP                    equ P3.2
+                      45     
+----                  46     dseg at 0x30
+0030                  47     DELAY_ALTO: ds 1
+0031                  48     DELAY_BAJO: ds 1
+                      49     
+                      50     
+----                  51     cseg at 0x0100
+                      52     
+0100                  53     HABILITAR_DATOS:                        ; da la ventana necesaria al enable para que los da
+                             tos se transmitan al display
+A51 MACRO ASSEMBLER  CODIGO_ASEMBLER                                                      07/21/2014 18:12:10 PAGE     2
+
+0100 D2A6             54                             SETB ENEBLE_LCD
+0102 C2A6             55                             CLR ENEBLE_LCD
+0104 22               56                             RET
+                      57     
+0105                  58     HABILITAR_INTERRUPCION:
+0105 75A881           59                             MOV IE, #81H
+0108 22               60                             RET
+                      61                             
+0109                  62     DESABILITAR_INTERRUPCION:
+0109 75A800           63                             MOV IE, #00H
+010C 22               64                             RET
+                      65     
+010D                  66     PRENDER:
+010D D2B5             67                             SETB SLEEP
+010F 22               68                             RET
+                      69     
+0110                  70     APAGAR:
+0110 C2B5             71                             CLR SLEEP
+0112 22               72                             RET
+                      73     
+0113                  74     DELAY_PASOS_R:                                          ;retardo para el retroceso
+0113 7EFF             75                             MOV R6,#RETRASO_SUP_R
+0115 7F30             76                             MOV R7,#RETRASO_INF_R
+0117 3121             77                             CALL DELAY
+0119 22               78                             RET
+                      79     
+011A                  80     DELAY_PASOS:                    ; es un delay de 1.3ms
+011A AE30             81                             MOV R6,DELAY_ALTO
+011C AF31             82                             MOV R7,DELAY_BAJO
+011E 3121             83                             CALL DELAY
+0120 22               84                             RET
+                      85     
+                      86     
+0121                  87     DELAY:          
+0121 758901           88                             MOV TMOD, #01H
+0124 8E8C             89                             MOV TH0,R6
+0126 8F8A             90                             MOV TL0,R7
+0128 D28C             91                             SETB TR0
+012A 308DFD           92             CICLO2: JNB TF0,CICLO2
+012D C28D             93                             CLR TF0
+012F 22               94                             RET
+                      95                     
+0130                  96     DELAY_SLEEP:                    ;es un delay de 1.7ms. Es el tiempo que necesita DRV desde 
+                             que se lo saca de modo sleep hasta que se le mande la señal para hacer un paso.
+0130 758901           97                             MOV TMOD,#01H
+0133 758CF8           98                             MOV TH0,#248
+0136 758A62           99                             MOV TL0,#98
+0139 D28C            100                             SETB TR0
+013B 308DFD          101             CICLO:  JNB TF0,CICLO
+013E C28D            102                             CLR TF0
+0140 22              103                             RET
+                     104     
+                     105                             
+0141                 106     AVANZAR:
+0141 D291            107                             SETB DIR ;DIR=1 avanza
+0143 22              108                             RET     
+                     109                             
+0144                 110     PASO:                                   ; manda una señal de '1' y '0' para que el DRV haga
+                              1/32 paso
+0144 D2B3            111                             SETB    STEP
+0146 00              112                             nop
+0147 00              113                             nop
+0148 C2B3            114             SIGUE:  CLR             STEP
+014A 00              115                             nop
+014B 00              116                             nop
+014C 22              117                             RET
+A51 MACRO ASSEMBLER  CODIGO_ASEMBLER                                                      07/21/2014 18:12:10 PAGE     3
+
+                     118                             ;La señal debe permanecer en alto y bajo 2us por estado para que fu
+                             ncione el DRV
+                     119                             
+                     120                             
+014D                 121     AVANZAR_1mm:                            ;avanza 1 mm
+014D 7A0C            122                             MOV R2,#12
+014F 7920            123             FALTA2: MOV R1,#32
+0151 3144            124             FALTA:  CALL PASO                       ;hace un paso completo del motor
+0153 311A            125                             CALL DELAY_PASOS        ;espera entre micropaso y micropaso
+0155 D9FA            126                             DJNZ R1,FALTA
+0157 DAF6            127                             DJNZ R2,FALTA2
+0159 22              128                             RET
+                     129                             
+015A                 130     RETROCEDER_1_PASOM:                             ;hace un paso completo del motor
+015A 7920            131                             MOV R1,#32
+015C 3144            132             FALTA3: CALL PASO               
+015E 3113            133                             CALL DELAY_PASOS_R      ;espera entre micropaso y micropaso
+0160 D9FA            134                             DJNZ R1,FALTA3
+0162 22              135                             RET
+                     136                             
+0163                 137     RETROCEDER_1mm:                         ;avanza 1 mm
+0163 7A0C            138                             MOV R2,#12
+0165 315A            139             FALTA4: CALL RETROCEDER_1_PASOM
+0167 DAFC            140                             DJNZ R2,FALTA4
+0169 22              141                             RET
+                     142     
+016A                 143     RETROCEDER:
+016A C291            144                             CLR DIR
+016C 22              145                             RET
+                     146     end
+A51 MACRO ASSEMBLER  CODIGO_ASEMBLER                                                      07/21/2014 18:12:10 PAGE     4
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E                   T Y P E  V A L U E   ATTRIBUTES
+
+ABAJO. . . . . . . . . .  B ADDR   0090H.2 A   
+APAGAR . . . . . . . . .  C ADDR   0110H   A   
+ARRIBA . . . . . . . . .  B ADDR   0090H.3 A   
+AVANZAR. . . . . . . . .  C ADDR   0141H   A   
+AVANZAR_1MM. . . . . . .  C ADDR   014DH   A   
+CICLO. . . . . . . . . .  C ADDR   013BH   A   
+CICLO2 . . . . . . . . .  C ADDR   012AH   A   
+DATA4_LCD. . . . . . . .  B ADDR   00A0H.0 A   
+DATA5_LCD. . . . . . . .  B ADDR   00A0H.1 A   
+DATA6_LCD. . . . . . . .  B ADDR   00A0H.2 A   
+DATA7_LCD. . . . . . . .  B ADDR   00A0H.3 A   
+DELAY. . . . . . . . . .  C ADDR   0121H   A   
+DELAY_ALTO . . . . . . .  D ADDR   0030H   A   
+DELAY_BAJO . . . . . . .  D ADDR   0031H   A   
+DELAY_PASOS. . . . . . .  C ADDR   011AH   A   
+DELAY_PASOS_R. . . . . .  C ADDR   0113H   A   
+DELAY_RETROCESO. . . . .  N NUMB   00D9H   A   
+DELAY_SLEEP. . . . . . .  C ADDR   0130H   A   
+DESABILITAR_INTERRUPCION  C ADDR   0109H   A   
+DIR. . . . . . . . . . .  B ADDR   0090H.1 A   
+ENEBLE_LCD . . . . . . .  B ADDR   00A0H.6 A   
+FALTA. . . . . . . . . .  C ADDR   0151H   A   
+FALTA2 . . . . . . . . .  C ADDR   014FH   A   
+FALTA3 . . . . . . . . .  C ADDR   015CH   A   
+FALTA4 . . . . . . . . .  C ADDR   0165H   A   
+FAUL . . . . . . . . . .  B ADDR   0090H.0 A   
+HABILITAR_DATOS. . . . .  C ADDR   0100H   A   
+HABILITAR_INTERRUPCION .  C ADDR   0105H   A   
+HOME . . . . . . . . . .  B ADDR   00B0H.6 A   
+IE . . . . . . . . . . .  D ADDR   00A8H   A   
+OK . . . . . . . . . . .  B ADDR   00A0H.7 A   
+P1 . . . . . . . . . . .  D ADDR   0090H   A   
+P2 . . . . . . . . . . .  D ADDR   00A0H   A   
+P3 . . . . . . . . . . .  D ADDR   00B0H   A   
+PASO . . . . . . . . . .  C ADDR   0144H   A   
+PRENDER. . . . . . . . .  C ADDR   010DH   A   
+RESET. . . . . . . . . .  B ADDR   00B0H.4 A   
+RETRASO_INF_R. . . . . .  N NUMB   0030H   A   
+RETRASO_SUP_R. . . . . .  N NUMB   00FFH   A   
+RETROCEDER . . . . . . .  C ADDR   016AH   A   
+RETROCEDER_1MM . . . . .  C ADDR   0163H   A   
+RETROCEDER_1_PASOM . . .  C ADDR   015AH   A   
+RS_LCD . . . . . . . . .  B ADDR   00A0H.5 A   
+RW_LCD . . . . . . . . .  B ADDR   00A0H.4 A   
+SIGUE. . . . . . . . . .  C ADDR   0148H   A   
+SLEEP. . . . . . . . . .  B ADDR   00B0H.5 A   
+STEP . . . . . . . . . .  B ADDR   00B0H.3 A   
+STOP . . . . . . . . . .  B ADDR   00B0H.2 A   
+TF0. . . . . . . . . . .  B ADDR   0088H.5 A   
+TH0. . . . . . . . . . .  D ADDR   008CH   A   
+TL0. . . . . . . . . . .  D ADDR   008AH   A   
+TMOD . . . . . . . . . .  D ADDR   0089H   A   
+TR0. . . . . . . . . . .  B ADDR   0088H.4 A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)

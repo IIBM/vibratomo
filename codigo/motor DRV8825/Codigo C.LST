@@ -1,0 +1,1056 @@
+C51 COMPILER V9.52.0.0   CODIGO_C                                                          07/21/2014 18:12:09 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE CODIGO_C
+OBJECT MODULE PLACED IN Codigo C.OBJ
+COMPILER INVOKED BY: C:\Program Files (x86)\keil\C51\BIN\C51.EXE Codigo C.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include <AT89X52.H>
+   2          
+   3          /* Para el motor
+   4          24 pasos del motor son 1,008 mm
+   5          si 1/32 pasos hace el DRV entonces 768 pasos DRV son 1,008mm
+   6          DELAY_PASOS = velocidad /768 donde velocidad son seg/mm */
+   7          
+   8          #define RECORRIDO 30 //defino la long a recorrer en mm
+   9          #define ERROR P1_0  //nfaul
+  10          #define RESET P3_4  //reset
+  11          
+  12          // Para el LCd
+  13          #define D4  P2_0
+  14          #define D5  P2_1
+  15          #define D6  P2_2
+  16          #define D7  P2_3
+  17          #define RW  P2_4
+  18          #define RS  P2_5
+  19          #define ENA P2_6
+  20          #define LCD_PORT  P2
+  21          #define OK  P2_7
+  22          #define ARRIBA P1_3
+  23          #define ABAJO P1_2
+  24          #define INICIAR P1_4
+  25          #define STOP P3_2
+  26          
+  27          
+  28          #define LCD_UNOS  0x3f  //xx11 1111
+  29          #define LCD_BOOT_ALTA 193 //retardo de 16ms
+  30          #define LCD_BOOT_BAJA 38 //138
+  31          #define LCD_DELAY_1_ALTA 236//retardo de 5ms
+  32          #define LCD_DELAY_1_BAJA 0 // 100
+  33          #define LCD_DELAY_2_ALTA 255//retardo de 114us
+  34          #define LCD_DELAY_2_BAJA 56 //156
+  35          #define DELAY_ESCRITURA_ALTA 255//retardo de 45us
+  36          #define DELAY_ESCRITURA_BAJA 211
+  37          #define BORRAR_LCD_ALTA 177 //retardo de 20ms
+  38          #define BORRAR_LCD_BAJA 124  // 224
+  39          #define DELAY_VISUALIZACION_ALTA 0//delay de 65536us
+  40          #define DELAY_VISUALIZACION_BAJA 0
+  41          #define DELAY_BOTONES_ALTA 0 //delay de 50ms
+  42          #define DELAY_BOTONES_BAJA 176
+  43          #define NIBBLE_MASK 0x0F
+  44          #define POSICION_LCD_MASK 0x80  //1000  0000
+  45          #define LCD_RS  0x20  //xx1x xxxx
+  46          #define LCD_RW  0x10  //xxx1 xxxx
+  47          #define LCD_MODO_4BITS 0x28 //001(DL) (N)0xx  DL:Data Length( 1:8bit 0:4bit) N:Dual Line(1:Dual Line 0:Sin
+             -gle Line) VER SEGUN DISPLAY COMPRADO
+  48          #define LCD_MODO_DESPLAZAMIENTO 0x06//incrementar contador de direccion automaticamente y el display quiet
+             -o
+  49          #define LCD_PRENDIDO_SIN_CURSOR 0x0C// DISPLAY ON CURSOR OFF
+  50          #define LCD_PRENDIDO_CURSOR_PARPADEANTE 0x0D// Display ON Cursor parpadiando
+  51          #define LCD_OFF 0x08// apagar el display
+  52          
+  53          
+C51 COMPILER V9.52.0.0   CODIGO_C                                                          07/21/2014 18:12:09 PAGE 2   
+
+  54          //agregamos las rutinas de asembler
+  55          extern void HABILITAR_DATOS();
+  56          extern void PASO();
+  57          extern void DELAY_SLEEP();
+  58          extern void AVANZAR();
+  59          extern void RETROCEDER();
+  60          extern void DELAY_PASOS();
+  61          extern void AVANZAR_1_PASOM();
+  62          extern void AVANZAR_1mm();
+  63          extern void PRENDER();
+  64          extern void APAGAR();
+  65          extern void RETROCEDER_1mm();
+  66          extern void HABILITAR_INTERRUPCION();
+  67          extern void DESABILITAR_INTERRUPCION();
+  68          extern unsigned char DELAY_ALTO;
+  69          extern unsigned char DELAY_BAJO;
+  70          
+  71          
+  72          //  | or inclusivo (es uno si alguno de los dos es uno sino devuelve 0)    x|= y --> x = x | y 
+  73          //  & AND (devuelve un uno solo si los dos son uno)   x &= y -->    x = x & y
+  74          // ~ complemento
+  75          
+  76          
+  77          void ESCRIBIR_VIBRATOMO();
+  78          void DISPLAY_ON();
+  79          void DISPLAY_OFF();
+  80          void INICIALIZACION_DISPLAY();
+  81          void DELAY_MS(unsigned char ALTA, unsigned char BAJA);
+  82          void ESCRIBIR_NIBBLE(unsigned char nibble);
+  83          void ESCRIBIR_BYTE_LCD(unsigned char c);
+  84          void LCD_COMANDO( unsigned char c );
+  85          void ESCRIBIR_VECTOR( char * string, unsigned char posicion);
+  86          void POSICION_LCD(unsigned char posicion);
+  87          void DELAY_2SEG();
+  88          void ESCRIBIR_DISPLAY( unsigned char c );
+  89          void BORRAR_LCD( void );
+  90          void BOTONES_LISTOS();
+  91          void OPCION_NO_CORTAR();
+  92          void MENU_NO_CORTAR();
+  93          void ESCRIBIR_CARACTER();
+  94          void FLECHA_ABAJO();
+  95          void FLECHA_ARRIBA();
+  96          void MOTOR();
+  97          void DEFINIR_DELAY(unsigned char vel);
+  98          void ACCION_EMERGENCIA();
+  99          
+ 100          
+ 101          unsigned char pos; //para moverme entre las opciones del menú y mostrar de a dos lineas por el display
+ 102          unsigned char pos2; //para seleccionar una opcion de las dos lineas mostradas por el display
+ 103          unsigned char pos3; // para seleccionar uno de los valor de la velocidad que introduce el usuario
+ 104          unsigned char cancelar; // para salir de los distintos menues
+ 105          unsigned char vel; // variable para realizar la cuenta del delay de la velocidad 
+ 106          
+ 107          void main()
+ 108          {
+ 109   1        APAGAR();
+ 110   1        INICIALIZACION_DISPLAY();
+ 111   1        ESCRIBIR_VECTOR("VIBRATOMO",4); //al inicializar el equipo mostramos por display la palabra vibrátomo
+ 112   1        ESCRIBIR_CARACTER();  //graba los caracteres de las flechas para arriba y para abajo en el LCD
+ 113   1        DELAY_2SEG(); 
+ 114   1        BORRAR_LCD();
+ 115   1        ESCRIBIR_VECTOR("SELEC. VELOCIDAD   (PRES OK)    ",0);
+C51 COMPILER V9.52.0.0   CODIGO_C                                                          07/21/2014 18:12:09 PAGE 3   
+
+ 116   1        OK=1;
+ 117   1        while(OK!= 0) //espera a que se presiones el boton ok 
+ 118   1        {
+ 119   2        }
+ 120   1        pos=0;
+ 121   1        pos2=0;
+ 122   1        cancelar=0;
+ 123   1        BOTONES_LISTOS(); //es un delay para evitar el rebote del boton 
+ 124   1        do
+ 125   1        {
+ 126   2          cancelar=0;
+ 127   2          if(pos<2)     //parte del menu para las dos primeras opciones de corte
+ 128   2          {
+ 129   3            ESCRIBIR_VECTOR("0.5 mm/seg      0.7 mm/seg     ",0); //muestro las primeras dos lineas del menú
+ 130   3            FLECHA_ABAJO();
+ 131   3            if(pos==0)
+ 132   3            {
+ 133   4              POSICION_LCD(0);
+ 134   4            }
+ 135   3            else
+ 136   3            { 
+ 137   4              POSICION_LCD(40);
+ 138   4            }
+ 139   3            LCD_COMANDO(LCD_PRENDIDO_CURSOR_PARPADEANTE);
+ 140   3            while(pos<2 && cancelar!=1)
+ 141   3            {
+ 142   4              if(ARRIBA==0 && pos==1)
+ 143   4              {
+ 144   5                POSICION_LCD(0);
+ 145   5                pos=0;
+ 146   5                BOTONES_LISTOS();
+ 147   5              }
+ 148   4              if(ABAJO==0 && pos==0)
+ 149   4              {
+ 150   5                POSICION_LCD(40);
+ 151   5                pos=1;
+ 152   5                BOTONES_LISTOS();
+ 153   5              }
+ 154   4              if(ABAJO==0 && pos==1)
+ 155   4              {
+ 156   5                pos=2;
+ 157   5                BOTONES_LISTOS();
+ 158   5              }
+ 159   4              if(OK== 0)
+ 160   4              {
+ 161   5                BOTONES_LISTOS();
+ 162   5                pos2=0;
+ 163   5                switch(pos)
+ 164   5                {
+ 165   6                  case 0:
+ 166   6                    while (cancelar!=1)
+ 167   6                    {
+ 168   7                      LCD_COMANDO(LCD_PRENDIDO_SIN_CURSOR);
+ 169   7                      if(pos2==0)
+ 170   7                      {
+ 171   8                        ESCRIBIR_VECTOR("VEL: 0.5 mm/seg   PESS INICIAR  ",0);
+ 172   8                        FLECHA_ABAJO();
+ 173   8                        pos2=2;
+ 174   8                      }
+ 175   7                      if(INICIAR==0)
+ 176   7                      {
+ 177   8                        BOTONES_LISTOS();
+C51 COMPILER V9.52.0.0   CODIGO_C                                                          07/21/2014 18:12:09 PAGE 4   
+
+ 178   8                        vel=5;
+ 179   8                        DEFINIR_DELAY(vel);
+ 180   8                        ESCRIBIR_VECTOR("CORTANDO CON    VEL: 0.5 mm/seg ",0);
+ 181   8                        HABILITAR_INTERRUPCION();
+ 182   8                        MOTOR();
+ 183   8                        DESABILITAR_INTERRUPCION();
+ 184   8                        //cancelar=1;
+ 185   8                        pos=0;
+ 186   8                        pos2=0;
+ 187   8                      }
+ 188   7                      MENU_NO_CORTAR(); //este parte de menu se repite en para cada opcion de corte por lo que se hizo u
+             -na funcion aparte con ella asi
+ 189   7                    }           //nos ahorramos memoria de codigo
+ 190   6                    break;
+ 191   6                  case 1:
+ 192   6                    while (cancelar!=1)
+ 193   6                    {
+ 194   7                      LCD_COMANDO(LCD_PRENDIDO_SIN_CURSOR);
+ 195   7                      if(pos2==0)
+ 196   7                      {
+ 197   8                        ESCRIBIR_VECTOR("VEL: 0.7 mm/seg   PESS INICIAR  ",0);
+ 198   8                        FLECHA_ABAJO();                 
+ 199   8                        pos2=2;
+ 200   8                      }
+ 201   7                      if(INICIAR==0)
+ 202   7                      {
+ 203   8                        BOTONES_LISTOS();
+ 204   8                        vel=7;
+ 205   8                        DEFINIR_DELAY(vel);
+ 206   8                        ESCRIBIR_VECTOR("CORTANDO CON    VEL: 0.7 mm/seg ",0);
+ 207   8                        HABILITAR_INTERRUPCION();
+ 208   8                        MOTOR();
+ 209   8                        DESABILITAR_INTERRUPCION();
+ 210   8                        //cancelar=1;
+ 211   8                        pos=0;
+ 212   8                        pos2=0;
+ 213   8                      }
+ 214   7                      MENU_NO_CORTAR();
+ 215   7                    }
+ 216   6                    break;
+ 217   6                  default:
+ 218   6                    break;
+ 219   6                }
+ 220   5              }
+ 221   4            }
+ 222   3          }
+ 223   2          if(pos>1 && pos<4)  //parte del menu para las siguientes dos opciones de corte
+ 224   2          {
+ 225   3            ESCRIBIR_VECTOR("0.9 mm/seg      1.1 mm/seg      ",0); //muestro las segundas dos lineas del menú
+ 226   3            FLECHA_ARRIBA();
+ 227   3            FLECHA_ABAJO();
+ 228   3            if(pos==2)
+ 229   3            {
+ 230   4              POSICION_LCD(0);
+ 231   4            }
+ 232   3            else
+ 233   3            { 
+ 234   4              POSICION_LCD(40);
+ 235   4            }
+ 236   3            LCD_COMANDO(LCD_PRENDIDO_CURSOR_PARPADEANTE);
+ 237   3            while(pos>1 && pos<4)
+ 238   3            {
+C51 COMPILER V9.52.0.0   CODIGO_C                                                          07/21/2014 18:12:09 PAGE 5   
+
+ 239   4              if(ARRIBA==0 && pos==2)
+ 240   4              {
+ 241   5                POSICION_LCD(0);
+ 242   5                pos=1;
+ 243   5                BOTONES_LISTOS();
+ 244   5              }
+ 245   4              if(ARRIBA==0 && pos==3)
+ 246   4              {
+ 247   5                POSICION_LCD(0);
+ 248   5                pos=2;
+ 249   5                BOTONES_LISTOS();
+ 250   5              }
+ 251   4              if(ABAJO==0 && pos==2)
+ 252   4              {
+ 253   5                POSICION_LCD(40);
+ 254   5                pos=3;
+ 255   5                BOTONES_LISTOS();
+ 256   5              }
+ 257   4              if(ABAJO==0 && pos==3)
+ 258   4              {
+ 259   5                pos=4;
+ 260   5                BOTONES_LISTOS();
+ 261   5              }
+ 262   4              if(OK== 0)
+ 263   4              {
+ 264   5                pos2=0;
+ 265   5                BOTONES_LISTOS();
+ 266   5                switch(pos)
+ 267   5                {
+ 268   6                  case 2:
+ 269   6                    while (cancelar!=1)
+ 270   6                    {
+ 271   7                      LCD_COMANDO(LCD_PRENDIDO_SIN_CURSOR);
+ 272   7                      if(pos2==0)
+ 273   7                      {
+ 274   8                        ESCRIBIR_VECTOR("VEL: 0.9 mm/seg   PESS INICIAR  ",0);
+ 275   8                        FLECHA_ABAJO();                 
+ 276   8                        pos2=2;
+ 277   8                      }
+ 278   7                      if(INICIAR==0)
+ 279   7                      {
+ 280   8                        BOTONES_LISTOS();
+ 281   8                        vel=9;
+ 282   8                        DEFINIR_DELAY(vel);
+ 283   8                        ESCRIBIR_VECTOR("CORTANDO CON    VEL: 0.9 mm/seg ",0);
+ 284   8                        HABILITAR_INTERRUPCION();
+ 285   8                        MOTOR();
+ 286   8                        DESABILITAR_INTERRUPCION();
+ 287   8                        //cancelar=1;
+ 288   8                        pos=0;
+ 289   8                        pos2=0;
+ 290   8                      }
+ 291   7                      MENU_NO_CORTAR();
+ 292   7                    }
+ 293   6                    break;
+ 294   6                  case 3:
+ 295   6                    while (cancelar!=1)
+ 296   6                    {
+ 297   7                      LCD_COMANDO(LCD_PRENDIDO_SIN_CURSOR);
+ 298   7                      if(pos2==0)
+ 299   7                      {
+ 300   8                        ESCRIBIR_VECTOR("VEL: 1.1 mm/seg   PESS INICIAR  ",0);
+C51 COMPILER V9.52.0.0   CODIGO_C                                                          07/21/2014 18:12:09 PAGE 6   
+
+ 301   8                        FLECHA_ABAJO();                 
+ 302   8                        pos2=2;
+ 303   8                      }
+ 304   7                      if(INICIAR==0)
+ 305   7                      {
+ 306   8                        BOTONES_LISTOS();
+ 307   8                        vel=11;
+ 308   8                        DEFINIR_DELAY(vel);
+ 309   8                        ESCRIBIR_VECTOR("CORTANDO CON    VEL: 1.1 mm/seg ",0);
+ 310   8                        HABILITAR_INTERRUPCION();
+ 311   8                        MOTOR();
+ 312   8                        DESABILITAR_INTERRUPCION();
+ 313   8                        //cancelar=1;
+ 314   8                        pos=0;
+ 315   8                        pos2=0;
+ 316   8                      }
+ 317   7                      MENU_NO_CORTAR();
+ 318   7                    }
+ 319   6                    break;
+ 320   6                  default:
+ 321   6                    break;
+ 322   6                }
+ 323   5              }
+ 324   4            }
+ 325   3          }
+ 326   2          if(pos>3 && pos<6)  //parte del menu para las siguientes dos opciones de corte
+ 327   2          {
+ 328   3            ESCRIBIR_VECTOR("1.3 mm/seg      1.5 mm/seg       ",0); //muestro las terceras dos lineas del menú
+ 329   3            FLECHA_ABAJO();
+ 330   3            FLECHA_ARRIBA();
+ 331   3            if(pos==4)
+ 332   3            {
+ 333   4              POSICION_LCD(0);
+ 334   4            }
+ 335   3            else
+ 336   3            { 
+ 337   4              POSICION_LCD(40);
+ 338   4            }
+ 339   3            LCD_COMANDO(LCD_PRENDIDO_CURSOR_PARPADEANTE);
+ 340   3            BOTONES_LISTOS();
+ 341   3            while(pos>3 && pos<6)
+ 342   3            {
+ 343   4              if(ARRIBA==0 && pos==4)
+ 344   4              {
+ 345   5                POSICION_LCD(0);
+ 346   5                pos=3;
+ 347   5                BOTONES_LISTOS();
+ 348   5              }
+ 349   4              if(ARRIBA==0 && pos==5)
+ 350   4              {
+ 351   5                POSICION_LCD(0);
+ 352   5                pos=4;
+ 353   5                BOTONES_LISTOS();
+ 354   5              }
+ 355   4              if(ABAJO==0 && pos==4)
+ 356   4              {
+ 357   5                POSICION_LCD(40);
+ 358   5                pos=5;
+ 359   5                BOTONES_LISTOS();
+ 360   5              }
+ 361   4              if(ABAJO==0 && pos==5)
+ 362   4              {
+C51 COMPILER V9.52.0.0   CODIGO_C                                                          07/21/2014 18:12:09 PAGE 7   
+
+ 363   5                pos=6;
+ 364   5                BOTONES_LISTOS();
+ 365   5              }
+ 366   4              if(OK== 0)
+ 367   4              {
+ 368   5                BOTONES_LISTOS();
+ 369   5                pos2=0;
+ 370   5                switch(pos)
+ 371   5                {
+ 372   6                  case 4:
+ 373   6                    while (cancelar!=1)
+ 374   6                    {
+ 375   7                      LCD_COMANDO(LCD_PRENDIDO_SIN_CURSOR);
+ 376   7                      if(pos2==0)
+ 377   7                      {
+ 378   8                        ESCRIBIR_VECTOR("VEL: 1.3 mm/seg   PESS INICIAR  ",0);
+ 379   8                        FLECHA_ABAJO();                 
+ 380   8                        pos2=2;
+ 381   8                      }
+ 382   7                      if(INICIAR==0)
+ 383   7                      {
+ 384   8                        BOTONES_LISTOS();
+ 385   8                        vel=13;
+ 386   8                        DEFINIR_DELAY(vel);
+ 387   8                        ESCRIBIR_VECTOR("CORTANDO CON    VEL: 1.3 mm/seg ",0);
+ 388   8                        HABILITAR_INTERRUPCION();
+ 389   8                        MOTOR();
+ 390   8                        DESABILITAR_INTERRUPCION();
+ 391   8                        //cancelar=1;
+ 392   8                        pos=0;
+ 393   8                        pos2=0;
+ 394   8                      }
+ 395   7                      MENU_NO_CORTAR();
+ 396   7                    }
+ 397   6                    break;
+ 398   6                  case 5:
+ 399   6                    while (cancelar!=1)
+ 400   6                    {
+ 401   7                      LCD_COMANDO(LCD_PRENDIDO_SIN_CURSOR);
+ 402   7                      if(pos2==0)
+ 403   7                      {
+ 404   8                        ESCRIBIR_VECTOR("VEL: 1.5 mm/seg   PESS INICIAR  ",0);
+ 405   8                        FLECHA_ABAJO();                 
+ 406   8                        pos2=2;
+ 407   8                      }
+ 408   7                      if(INICIAR==0)
+ 409   7                      {
+ 410   8                        BOTONES_LISTOS();
+ 411   8                        vel=15;
+ 412   8                        DEFINIR_DELAY(vel);
+ 413   8                        ESCRIBIR_VECTOR("CORTANDO CON    VEL: 1.5 mm/seg ",0);
+ 414   8                        HABILITAR_INTERRUPCION();
+ 415   8                        MOTOR();
+ 416   8                        DESABILITAR_INTERRUPCION();
+ 417   8                        //cancelar=1;
+ 418   8                        pos=0;
+ 419   8                        pos2=0;
+ 420   8                      }
+ 421   7                      MENU_NO_CORTAR();
+ 422   7                    }
+ 423   6                    break;
+ 424   6                  default:
+C51 COMPILER V9.52.0.0   CODIGO_C                                                          07/21/2014 18:12:09 PAGE 8   
+
+ 425   6                    break;
+ 426   6                }
+ 427   5              }
+ 428   4            }
+ 429   3          }
+ 430   2          if(pos>5 && pos<8)  //parte del menu para las siguientes dos opciones de corte
+ 431   2          {
+ 432   3            ESCRIBIR_VECTOR("1.7 mm/seg      1.9 mm/seg       ",0); //muestro las cuartas dos lineas del menú
+ 433   3            FLECHA_ARRIBA();
+ 434   3            FLECHA_ABAJO();
+ 435   3            if(pos==6)
+ 436   3            {
+ 437   4              POSICION_LCD(0);
+ 438   4            }
+ 439   3            else
+ 440   3            { 
+ 441   4              POSICION_LCD(40);
+ 442   4            }
+ 443   3            LCD_COMANDO(LCD_PRENDIDO_CURSOR_PARPADEANTE);
+ 444   3            BOTONES_LISTOS();
+ 445   3            while(pos>5 && pos<8)
+ 446   3            {
+ 447   4              if(ARRIBA==0 && pos==6)
+ 448   4              {
+ 449   5                POSICION_LCD(0);
+ 450   5                pos=5;
+ 451   5                BOTONES_LISTOS();
+ 452   5              }
+ 453   4              if(ARRIBA==0 && pos==7)
+ 454   4              {
+ 455   5                POSICION_LCD(0);
+ 456   5                pos=6;
+ 457   5                BOTONES_LISTOS();
+ 458   5              }
+ 459   4              if(ABAJO==0 && pos==6)
+ 460   4              {
+ 461   5                POSICION_LCD(40);
+ 462   5                pos=7;
+ 463   5                BOTONES_LISTOS();
+ 464   5              }
+ 465   4              if(ABAJO==0 && pos==7)
+ 466   4              {
+ 467   5                pos=8;
+ 468   5                BOTONES_LISTOS();
+ 469   5              }
+ 470   4              if(OK== 0)
+ 471   4              {
+ 472   5                BOTONES_LISTOS();
+ 473   5                pos2=0;
+ 474   5                switch(pos)
+ 475   5                {
+ 476   6                  case 6:
+ 477   6                    while (cancelar!=1)
+ 478   6                    {
+ 479   7                      LCD_COMANDO(LCD_PRENDIDO_SIN_CURSOR);
+ 480   7                      if(pos2==0)
+ 481   7                      {
+ 482   8                        ESCRIBIR_VECTOR("VEL: 1.7 mm/seg   PESS INICIAR  ",0);
+ 483   8                        FLECHA_ABAJO();
+ 484   8                        pos2=2;
+ 485   8                      }
+ 486   7                      if(INICIAR==0)
+C51 COMPILER V9.52.0.0   CODIGO_C                                                          07/21/2014 18:12:09 PAGE 9   
+
+ 487   7                      {
+ 488   8                        BOTONES_LISTOS();
+ 489   8                        vel=17;
+ 490   8                        DEFINIR_DELAY(vel);
+ 491   8                        ESCRIBIR_VECTOR("CORTANDO CON    VEL: 1.7 mm/seg ",0);
+ 492   8                        HABILITAR_INTERRUPCION();
+ 493   8                        MOTOR();
+ 494   8                        DESABILITAR_INTERRUPCION();
+ 495   8                        //cancelar=1;
+ 496   8                        pos=0;
+ 497   8                        pos2=0;
+ 498   8                      }
+ 499   7                      MENU_NO_CORTAR();
+ 500   7                    }
+ 501   6                    break;
+ 502   6                  case 7:
+ 503   6                    while (cancelar!=1)
+ 504   6                    {
+ 505   7                      LCD_COMANDO(LCD_PRENDIDO_SIN_CURSOR);
+ 506   7                      if(pos2==0)
+ 507   7                      {
+ 508   8                        ESCRIBIR_VECTOR("VEL: 1.9 mm/seg   PESS INICIAR  ",0);
+ 509   8                        FLECHA_ABAJO();
+ 510   8                        pos2=2;
+ 511   8                      }
+ 512   7                      if(INICIAR==0)
+ 513   7                      {
+ 514   8                        BOTONES_LISTOS();
+ 515   8                        vel=19;
+ 516   8                        DEFINIR_DELAY(vel);
+ 517   8                        ESCRIBIR_VECTOR("CORTANDO CON    VEL: 1.9 mm/seg ",0);
+ 518   8                        HABILITAR_INTERRUPCION();
+ 519   8                        MOTOR();
+ 520   8                        DESABILITAR_INTERRUPCION();
+ 521   8                        //cancelar=1;
+ 522   8                        pos=0;
+ 523   8                        pos2=0;
+ 524   8                      }
+ 525   7                      MENU_NO_CORTAR();
+ 526   7                    }
+ 527   6                    break;
+ 528   6                  default:
+ 529   6                    break;
+ 530   6                }
+ 531   5              }
+ 532   4            }
+ 533   3          }
+ 534   2          if(pos==8)  //parte del menu donde el usuario ingresa la velocidad que desea para el corte
+ 535   2          {
+ 536   3            ESCRIBIR_VECTOR("INTRODUCCIR     VELOCIDAD       ",0); //muestro las quintas dos lineas del menú
+ 537   3            FLECHA_ARRIBA();
+ 538   3            POSICION_LCD(0);
+ 539   3            LCD_COMANDO(LCD_PRENDIDO_CURSOR_PARPADEANTE);
+ 540   3            BOTONES_LISTOS();
+ 541   3            while(pos==8 && cancelar!=1)
+ 542   3            {
+ 543   4              if(ARRIBA==0 && pos==8)
+ 544   4              {
+ 545   5                POSICION_LCD(0);
+ 546   5                pos=7;
+ 547   5                BOTONES_LISTOS();
+ 548   5              }
+C51 COMPILER V9.52.0.0   CODIGO_C                                                          07/21/2014 18:12:09 PAGE 10  
+
+ 549   4              if(OK== 0)
+ 550   4              {
+ 551   5                BOTONES_LISTOS();
+ 552   5                pos2=1;
+ 553   5                pos=0;
+ 554   5                ESCRIBIR_VECTOR("VEL: 0.0 mm/seg                ",0);
+ 555   5                POSICION_LCD(45);
+ 556   5                ESCRIBIR_DISPLAY(0);
+ 557   5                POSICION_LCD(47);
+ 558   5                ESCRIBIR_DISPLAY(0);
+ 559   5                POSICION_LCD(5);
+ 560   5                while(pos2<15)
+ 561   5                {
+ 562   6                  if(ABAJO==0)
+ 563   6                  { 
+ 564   7                    BOTONES_LISTOS();
+ 565   7                    ESCRIBIR_DISPLAY('0'+pos2);
+ 566   7                    pos=pos2;
+ 567   7                    pos2++;
+ 568   7                    POSICION_LCD(5);
+ 569   7                    if(pos2==10)
+ 570   7                    {
+ 571   8                      pos2=0;
+ 572   8                      POSICION_LCD(5);
+ 573   8                    }
+ 574   7                  }
+ 575   6                  if(OK== 0)
+ 576   6                  {
+ 577   7                    BOTONES_LISTOS();
+ 578   7                    pos2=15;
+ 579   7                  }
+ 580   6                }
+ 581   5                pos2=1;
+ 582   5                pos3=0;
+ 583   5                POSICION_LCD(7);
+ 584   5                while(pos2<11)
+ 585   5                {
+ 586   6                  if(ABAJO==0)
+ 587   6                  {
+ 588   7                    BOTONES_LISTOS();             
+ 589   7                    ESCRIBIR_DISPLAY('0'+pos2);
+ 590   7                    pos3=pos2;
+ 591   7                    pos2++;
+ 592   7                    POSICION_LCD(7);
+ 593   7                    if(pos2==10)
+ 594   7                    {
+ 595   8                      pos2=0;
+ 596   8                    }
+ 597   7                  }
+ 598   6                  if(OK== 0)
+ 599   6                  {
+ 600   7                    BOTONES_LISTOS();
+ 601   7                    pos2=11;
+ 602   7                  }
+ 603   6                }
+ 604   5                pos2=0;
+ 605   5                LCD_COMANDO(LCD_PRENDIDO_SIN_CURSOR);
+ 606   5                while (cancelar!=1)
+ 607   5                {
+ 608   6                  if(pos2==0)
+ 609   6                  {
+ 610   7                    ESCRIBIR_VECTOR("VEL: x.x mm/seg   PESS INICIAR  ",0);
+C51 COMPILER V9.52.0.0   CODIGO_C                                                          07/21/2014 18:12:09 PAGE 11  
+
+ 611   7                    POSICION_LCD(5);
+ 612   7                    ESCRIBIR_DISPLAY('0'+pos);
+ 613   7                    POSICION_LCD(7);
+ 614   7                    ESCRIBIR_DISPLAY('0'+pos3);
+ 615   7                    FLECHA_ABAJO();
+ 616   7                    pos2=2;
+ 617   7                  }
+ 618   6                  if(INICIAR==0)
+ 619   6                  {
+ 620   7                    BOTONES_LISTOS();
+ 621   7                    vel=(pos*10)+pos3;
+ 622   7                    DEFINIR_DELAY(vel);
+ 623   7                    ESCRIBIR_VECTOR("CORTANDO CON    VEL: X.X mm/seg ",0);
+ 624   7                    POSICION_LCD(45);
+ 625   7                    ESCRIBIR_DISPLAY('0'+pos);
+ 626   7                    POSICION_LCD(47);
+ 627   7                    ESCRIBIR_DISPLAY('0'+pos3);
+ 628   7                    HABILITAR_INTERRUPCION();
+ 629   7                    MOTOR();
+ 630   7                    DESABILITAR_INTERRUPCION();
+ 631   7                    //cancelar=1;
+ 632   7                    //pos=0;
+ 633   7                    pos2=0;
+ 634   7                  }
+ 635   6                  MENU_NO_CORTAR();
+ 636   6                }
+ 637   5              }
+ 638   4            }
+ 639   3          }
+ 640   2      
+ 641   2        }while(pos<10);
+ 642   1      }
+ 643          
+ 644          void DEFINIR_DELAY(unsigned char vel) //funcion que se usa para definr el retraso que se usa entre cada pa
+             -so segun la velocidad requerida
+ 645          {
+ 646   1        unsigned int espera;
+ 647   1        espera = 10000000/ (384 * vel);
+ 648   1        DELAY_ALTO=255-((espera-10)/256);
+ 649   1        DELAY_BAJO=255-((espera-10)-(255-DELAY_ALTO)*256);
+ 650   1      }
+ 651          
+ 652          
+ 653          EMERGENCIA() interrupt 0 //funcion de interrupcion que se utiliza cuando el usuario aprieta el boton rojo 
+             -para parar el corte de la maquina
+ 654          {
+ 655   1        ACCION_EMERGENCIA();
+ 656   1      }
+ 657            
+ 658          void ACCION_EMERGENCIA()
+ 659          {
+ 660   1        BOTONES_LISTOS();
+ 661   1        ESCRIBIR_VECTOR("RETIRE MUESTRA YPRESIONE OK     ",0);
+ 662   1        while(OK!= 0)
+ 663   1        {
+ 664   2        }
+ 665   1        BOTONES_LISTOS();
+ 666   1        ESCRIBIR_VECTOR("   ESPERE...                    ",0);
+ 667   1      } 
+ 668            
+ 669          void MOTOR() //función que maneja el funcionamiento del motor
+ 670          {
+C51 COMPILER V9.52.0.0   CODIGO_C                                                          07/21/2014 18:12:09 PAGE 12  
+
+ 671   1        char cont=0;
+ 672   1        RESET=0;
+ 673   1        DELAY_SLEEP();
+ 674   1        RESET=1;
+ 675   1        DELAY_SLEEP();
+ 676   1        PRENDER();
+ 677   1        AVANZAR();
+ 678   1        DELAY_SLEEP();
+ 679   1        if(ERROR==0) 
+ 680   1        {
+ 681   2          APAGAR(); //si se produjo un error con el DRV, se lo apaga
+ 682   2          ESCRIBIR_VECTOR("PROBLEMA CON DRVREINICIAR EQUIPO",0);
+ 683   2          while(1)
+ 684   2          {
+ 685   3          }
+ 686   2        }
+ 687   1        else{ //si no hubo error, se mueve el motor
+ 688   2          while(cont<RECORRIDO) //avance de la cuchilla
+ 689   2          {
+ 690   3            AVANZAR_1mm();
+ 691   3            cont++;
+ 692   3          }
+ 693   2          RETROCEDER();
+ 694   2          cont=0;
+ 695   2          while(cont<RECORRIDO && ERROR==1) //retroceso de la cuchilla
+ 696   2          {
+ 697   3            RETROCEDER_1mm();
+ 698   3            cont++;
+ 699   3          }
+ 700   2        }
+ 701   1        APAGAR(); //al finalizar de cortar y volver la cuchilla a su lugar de inicio, se lleva al DRV a modo slee
+             -p
+ 702   1      }
+ 703          
+ 704          void ESCRIBIR_CARACTER()
+ 705          {
+ 706   1        LCD_COMANDO(64);
+ 707   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 708   1        RS=1;
+ 709   1        ESCRIBIR_BYTE_LCD(4);
+ 710   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 711   1      
+ 712   1        LCD_COMANDO(65);
+ 713   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 714   1      
+ 715   1        RS=1;
+ 716   1        ESCRIBIR_BYTE_LCD(4);
+ 717   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 718   1      
+ 719   1        LCD_COMANDO(66);
+ 720   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 721   1      
+ 722   1        RS=1;
+ 723   1        ESCRIBIR_BYTE_LCD(4);
+ 724   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 725   1      
+ 726   1        LCD_COMANDO(67);
+ 727   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 728   1      
+ 729   1        RS=1;
+ 730   1        ESCRIBIR_BYTE_LCD(4);
+ 731   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+C51 COMPILER V9.52.0.0   CODIGO_C                                                          07/21/2014 18:12:09 PAGE 13  
+
+ 732   1      
+ 733   1        LCD_COMANDO(68);
+ 734   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 735   1      
+ 736   1        RS=1;
+ 737   1        ESCRIBIR_BYTE_LCD(4);
+ 738   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 739   1      
+ 740   1        LCD_COMANDO(69);
+ 741   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 742   1      
+ 743   1        RS=1;
+ 744   1        ESCRIBIR_BYTE_LCD(21);
+ 745   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 746   1      
+ 747   1        LCD_COMANDO(70);
+ 748   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 749   1      
+ 750   1        RS=1;
+ 751   1        ESCRIBIR_BYTE_LCD(14);
+ 752   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 753   1      
+ 754   1        LCD_COMANDO(71);
+ 755   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 756   1      
+ 757   1        RS=1;
+ 758   1        ESCRIBIR_BYTE_LCD(4);
+ 759   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 760   1        
+ 761   1        LCD_COMANDO(72);
+ 762   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 763   1        RS=1;
+ 764   1        ESCRIBIR_BYTE_LCD(4);
+ 765   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 766   1      
+ 767   1        LCD_COMANDO(73);
+ 768   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 769   1      
+ 770   1        RS=1;
+ 771   1        ESCRIBIR_BYTE_LCD(14);
+ 772   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 773   1      
+ 774   1        LCD_COMANDO(74);
+ 775   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 776   1      
+ 777   1        RS=1;
+ 778   1        ESCRIBIR_BYTE_LCD(21);
+ 779   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 780   1      
+ 781   1        LCD_COMANDO(75);
+ 782   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 783   1      
+ 784   1        RS=1;
+ 785   1        ESCRIBIR_BYTE_LCD(4);
+ 786   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 787   1      
+ 788   1        LCD_COMANDO(76);
+ 789   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 790   1      
+ 791   1        RS=1;
+ 792   1        ESCRIBIR_BYTE_LCD(4);
+ 793   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+C51 COMPILER V9.52.0.0   CODIGO_C                                                          07/21/2014 18:12:09 PAGE 14  
+
+ 794   1      
+ 795   1        LCD_COMANDO(77);
+ 796   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 797   1      
+ 798   1        RS=1;
+ 799   1        ESCRIBIR_BYTE_LCD(4);
+ 800   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 801   1      
+ 802   1        LCD_COMANDO(78);
+ 803   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 804   1      
+ 805   1        RS=1;
+ 806   1        ESCRIBIR_BYTE_LCD(4);
+ 807   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 808   1      
+ 809   1        LCD_COMANDO(79);
+ 810   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 811   1      
+ 812   1        RS=1;
+ 813   1        ESCRIBIR_BYTE_LCD(4);
+ 814   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 815   1      
+ 816   1      }
+ 817          
+ 818          void FLECHA_ARRIBA() //funcion para mostrar la flecha arriba al final de la priemra linea del LCD
+ 819          {
+ 820   1        POSICION_LCD(15);
+ 821   1        ESCRIBIR_DISPLAY(1);
+ 822   1      }
+ 823          
+ 824          void FLECHA_ABAJO()  //funcion para mostrar la flecha arriba al final de la segunda linea del LCD
+ 825          {
+ 826   1        POSICION_LCD(55);
+ 827   1        ESCRIBIR_DISPLAY(0);
+ 828   1      }
+ 829          
+ 830          void MENU_NO_CORTAR() //parte del menu que se repite varias veces en el menu principal
+ 831          {
+ 832   1        if(ABAJO==0)
+ 833   1        {          
+ 834   2          pos2=1;
+ 835   2          BOTONES_LISTOS();
+ 836   2        }
+ 837   1        if(pos2==1)
+ 838   1        {
+ 839   2          OPCION_NO_CORTAR();
+ 840   2        }
+ 841   1        if(ARRIBA==0)
+ 842   1        {
+ 843   2          pos2=0;
+ 844   2          BOTONES_LISTOS();
+ 845   2        }
+ 846   1        if(OK==0)
+ 847   1        {
+ 848   2          BOTONES_LISTOS();
+ 849   2          cancelar=1;
+ 850   2          pos=0;
+ 851   2        }
+ 852   1      }
+ 853          
+ 854          void BOTONES_LISTOS ()
+ 855          {
+C51 COMPILER V9.52.0.0   CODIGO_C                                                          07/21/2014 18:12:09 PAGE 15  
+
+ 856   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 857   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 858   1        while(OK!=1 || ABAJO!=1 || ARRIBA!=1 || INICIAR!=1)
+ 859   1        {
+ 860   2        }
+ 861   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 862   1        DELAY_MS(DELAY_BOTONES_ALTA,DELAY_BOTONES_BAJA);
+ 863   1        OK=1;
+ 864   1        ABAJO=1;
+ 865   1        ARRIBA=1;
+ 866   1        INICIAR=1;
+ 867   1      }
+ 868          
+ 869          void OPCION_NO_CORTAR()
+ 870          {
+ 871   1        ESCRIBIR_VECTOR("OTRA VELOCIDAD  PRECIONAR OK    ",0);
+ 872   1        FLECHA_ARRIBA();
+ 873   1        pos2=2;
+ 874   1      }
+ 875          
+ 876          void INICIALIZACION_DISPLAY() //inicializa el display y lo pone en modo de 4 bits
+ 877          {
+ 878   1        DELAY_MS(LCD_BOOT_ALTA, LCD_BOOT_BAJA);
+ 879   1        
+ 880   1        LCD_PORT=0x03; 
+ 881   1        HABILITAR_DATOS();//5ms en alto y 5 ms en bajo
+ 882   1        DELAY_MS(LCD_DELAY_1_ALTA, LCD_DELAY_1_BAJA);
+ 883   1        
+ 884   1        LCD_PORT=0x03; 
+ 885   1        HABILITAR_DATOS();
+ 886   1        DELAY_MS(LCD_DELAY_2_ALTA, LCD_DELAY_2_BAJA);
+ 887   1        
+ 888   1        LCD_PORT=0x03; 
+ 889   1        HABILITAR_DATOS();  
+ 890   1        DELAY_MS(LCD_DELAY_1_ALTA, LCD_DELAY_1_BAJA);
+ 891   1        LCD_PORT=0x02; 
+ 892   1        HABILITAR_DATOS();
+ 893   1        DELAY_MS(LCD_DELAY_1_ALTA, LCD_DELAY_1_BAJA);
+ 894   1        
+ 895   1        
+ 896   1        //selecciono trabajar con 4 bits
+ 897   1        //LCD_PORT=0x26; // 001(DL) (N)0xx  DL:Data Length( 1:8bit 0:4bit) N:Dual Line(1:Dual Line 0:Single Line)
+             -;
+ 898   1        LCD_COMANDO(LCD_MODO_4BITS);
+ 899   1        LCD_COMANDO(LCD_OFF);
+ 900   1        BORRAR_LCD();
+ 901   1        LCD_COMANDO(LCD_MODO_DESPLAZAMIENTO);
+ 902   1        LCD_COMANDO(LCD_PRENDIDO_SIN_CURSOR);
+ 903   1      }
+ 904          
+ 905          void BORRAR_LCD( void ) //borra lo que este en la pantalla del LCD
+ 906          {
+ 907   1        LCD_COMANDO( 0x01 ); //Comando para limpiar el lcd
+ 908   1        DELAY_MS( BORRAR_LCD_ALTA,BORRAR_LCD_BAJA  );    //Tiempo de espera para el clear
+ 909   1      }
+ 910          
+ 911          void DELAY_MS (unsigned char alta, unsigned char baja) //funcion que se utiliza para generar retrasos
+ 912          {
+ 913   1        TMOD=0x01;
+ 914   1        TH0=alta;
+ 915   1        TL0=baja;
+ 916   1        TR0=1;
+C51 COMPILER V9.52.0.0   CODIGO_C                                                          07/21/2014 18:12:09 PAGE 16  
+
+ 917   1        while(TF0!=1)
+ 918   1        {
+ 919   2        }
+ 920   1        TF0=0;
+ 921   1      }
+ 922          
+ 923          void DELAY_2SEG() 
+ 924          {
+ 925   1        unsigned char CONT;
+ 926   1        for(CONT=0; CONT!=30; CONT++)//DELAY DE 2 SEGUNDO
+ 927   1        {
+ 928   2          DELAY_MS(DELAY_VISUALIZACION_ALTA,DELAY_VISUALIZACION_BAJA);
+ 929   2        }
+ 930   1      }
+ 931          
+ 932          void LCD_COMANDO( unsigned char c ) // funcion para pasarle comandos al LCD
+ 933          {
+ 934   1        LCD_PORT &= ~LCD_UNOS;
+ 935   1        LCD_PORT &= ~LCD_RS;   //RS:0
+ 936   1        LCD_PORT &= ~LCD_RW;   //RW:0
+ 937   1        ESCRIBIR_BYTE_LCD( c );
+ 938   1        DELAY_MS( 255, 126 ); //delay de 40us verificar segun modelos
+ 939   1      }
+ 940          
+ 941          void ESCRIBIR_VECTOR( char * string , unsigned char posicion) //Funcion utilizada para escribir en la pant
+             -alla del LCD 
+ 942          {
+ 943   1        POSICION_LCD( posicion );
+ 944   1      
+ 945   1        for ( ; *(string)  ; string++ )
+ 946   1        {
+ 947   2      
+ 948   2          /* Dado que la matriz de caracteres del display no es continua, y el
+ 949   2           * mapa es 0-7-- 40-47 salta en caso de que la posicion sea 8 hasta la
+ 950   2           * posicion 40 para trabajar con una linea sola
+ 951   2           * si trabajo con dos lineas son 0-15-- 40-66*/
+ 952   2          if( posicion == 16 )
+ 953   2          {
+ 954   3            POSICION_LCD( posicion = 40 );
+ 955   3          }
+ 956   2          ESCRIBIR_DISPLAY(  *(string) );
+ 957   2          DELAY_MS( DELAY_ESCRITURA_ALTA, DELAY_ESCRITURA_BAJA );
+ 958   2          posicion++;
+ 959   2        }
+ 960   1      }
+ 961          
+ 962          void POSICION_LCD( unsigned char posicion ) // para posicionarse en la pantalla del LCD
+ 963          {
+ 964   1        LCD_COMANDO( POSICION_LCD_MASK | posicion);
+ 965   1        DELAY_MS(LCD_DELAY_2_ALTA,LCD_DELAY_2_BAJA);
+ 966   1      }
+ 967          
+ 968          void ESCRIBIR_DISPLAY( unsigned char c ) //escribe un solo caracter en el LCD
+ 969          {
+ 970   1        LCD_PORT &= ~LCD_UNOS; //Blanqueo los 6 pines del lcd
+ 971   1        LCD_PORT |=  LCD_RS;   //Setteo  RS 0:Instruction register 1:Data Register
+ 972   1        LCD_PORT &= ~LCD_RW;   //Cleareo RW 0:Writing              1:Reading
+ 973   1      
+ 974   1        ESCRIBIR_BYTE_LCD( c );
+ 975   1        DELAY_MS(DELAY_ESCRITURA_ALTA,DELAY_ESCRITURA_BAJA);
+ 976   1      }
+ 977          
+C51 COMPILER V9.52.0.0   CODIGO_C                                                          07/21/2014 18:12:09 PAGE 17  
+
+ 978          void ESCRIBIR_BYTE_LCD(unsigned char c) // le pase un byte de informacion al LCD de a 4 bits por el mode e
+             -n qe se seteo el LCD
+ 979          {
+ 980   1        ESCRIBIR_NIBBLE(c); //escribo la parte superior del byte
+ 981   1        ESCRIBIR_NIBBLE(c<<4);  //escribo la parte inferior del byte
+ 982   1      }
+ 983          
+ 984          void ESCRIBIR_NIBBLE(unsigned char nibble)// complemento de la funcion ESCRIBIR_BYTE_LCD
+ 985          {
+ 986   1        nibble    &= (NIBBLE_MASK<<4);  //tomo solo la parte superior del nibble para escribir escribiendo 0 en la p
+             -arte baja
+ 987   1        LCD_PORT  &= ~NIBBLE_MASK;      // pongo 0 en la parte inferior para despues poner los nibbles
+ 988   1        LCD_PORT  |= (nibble>>4);       //bajo el nible y lo paso al los puertos
+ 989   1        
+ 990   1        HABILITAR_DATOS();
+ 991   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2525    ----
+   CONSTANT SIZE    =    967    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      5       6
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

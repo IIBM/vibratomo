@@ -1,0 +1,25 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Project:</h2>
+C:\Users\Agustin\Desktop\Prueba total\FInal.uvproj
+Project File Date:  06/20/2014
+
+<h2>Output:</h2>
+Rebuild target 'Target 1'
+assembling STARTUP.A51...
+compiling Codigo C.c...
+assembling Codigo Asembler.asm...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?_ESCRIBIR_VECTOR?CODIGO_C
+    CALLER1: ?C_C51STARTUP
+    CALLER2: ?PR?EMERGENCIA?CODIGO_C
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?_ESCRIBIR_BYTE_LCD?CODIGO_C
+    CALLER1: ?C_C51STARTUP
+    CALLER2: ?PR?EMERGENCIA?CODIGO_C
+Program Size: data=27.0 xdata=0 code=3936
+creating hex file from "FInal"...
+"FInal" - 0 Error(s), 2 Warning(s).
