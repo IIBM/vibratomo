@@ -37,7 +37,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "25 apr 2014"
+Date "15 jun 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -46,24 +46,10 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 Wire Wire Line
-	3350 4050 3700 4050
-Wire Wire Line
-	3700 4050 3700 3950
-Wire Wire Line
-	3700 3950 4600 3950
-Wire Wire Line
-	4600 3800 3350 3800
-Wire Wire Line
-	2500 3750 4400 3750
-Wire Wire Line
 	4950 1900 5500 1900
 Connection ~ 5900 2300
 Wire Wire Line
 	5900 2200 5900 2300
-Wire Wire Line
-	2550 4350 4600 4350
-Wire Wire Line
-	4600 3800 4600 3650
 Wire Wire Line
 	7300 4600 7400 4600
 Wire Wire Line
@@ -71,7 +57,7 @@ Wire Wire Line
 Wire Wire Line
 	7400 4400 7300 4400
 Wire Wire Line
-	6800 4400 6800 4250
+	6800 4250 6800 4400
 Wire Wire Line
 	6800 4250 6600 4250
 Connection ~ 6900 3550
@@ -128,26 +114,10 @@ Wire Wire Line
 	6750 4450 6750 4600
 Wire Wire Line
 	6750 4600 6800 4600
-Wire Wire Line
-	4600 3550 4400 3550
-Wire Wire Line
-	4400 3550 4400 3750
 Connection ~ 5400 1900
 Connection ~ 6400 1900
 Wire Wire Line
 	5100 2300 6400 2300
-Wire Wire Line
-	3350 3800 3350 3850
-Wire Wire Line
-	4600 3850 3600 3850
-Wire Wire Line
-	3600 3850 3600 3950
-Wire Wire Line
-	3600 3950 3350 3950
-Wire Wire Line
-	4600 4250 3350 4250
-Wire Wire Line
-	3350 4250 3350 4150
 Wire Wire Line
 	4600 3200 4500 3200
 Wire Wire Line
@@ -430,9 +400,6 @@ Connection ~ 3550 4750
 Wire Wire Line
 	2600 4550 2600 4750
 Connection ~ 2600 4650
-Wire Wire Line
-	2550 4350 2550 4150
-Connection ~ 4400 4350
 $Comp
 L R R9
 U 1 1 53596842
@@ -515,14 +482,6 @@ F 3 "" H 2950 4100 60  0000 C CNN
 	1    2950 4100
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	3350 3850 2550 3850
-Wire Wire Line
-	2550 3850 2550 3950
-Wire Wire Line
-	2500 3750 2500 4050
-Wire Wire Line
-	2500 4050 2550 4050
 Text GLabel 6650 4800 2    60   Input ~ 0
 VM
 Wire Wire Line
@@ -586,4 +545,59 @@ Connection ~ 5000 1900
 Wire Wire Line
 	6650 1900 6950 1900
 Connection ~ 6950 1900
+$Comp
+L R R10
+U 1 1 539DBE41
+P 7050 4300
+F 0 "R10" V 7130 4300 50  0000 C CNN
+F 1 "R" V 7050 4300 50  0000 C CNN
+F 2 "" H 7050 4300 60  0001 C CNN
+F 3 "" H 7050 4300 60  0001 C CNN
+	1    7050 4300
+	0    -1   -1   0   
+$EndComp
+$Comp
+L R R11
+U 1 1 539DBE47
+P 7050 4500
+F 0 "R11" V 7130 4500 50  0000 C CNN
+F 1 "R" V 7050 4500 50  0000 C CNN
+F 2 "" H 7050 4500 60  0001 C CNN
+F 3 "" H 7050 4500 60  0001 C CNN
+	1    7050 4500
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	6800 4600 6800 4500
+Wire Wire Line
+	7300 4500 7300 4600
+Wire Wire Line
+	7300 4400 7300 4300
+Connection ~ 6800 4300
+Text GLabel 2550 3950 0    60   Input ~ 0
+STEP
+Text GLabel 2550 4050 0    60   Input ~ 0
+DIR
+Text GLabel 2550 4150 0    60   Input ~ 0
+FAUL
+Text GLabel 3350 4150 2    60   Input ~ 0
+HOME
+Text GLabel 3350 4050 2    60   Input ~ 0
+SLEEP
+Text GLabel 3350 3950 2    60   Input ~ 0
+RESET
+Wire Wire Line
+	4400 4350 4600 4350
+Text GLabel 4600 3650 0    60   Input ~ 0
+STEP
+Text GLabel 4600 3550 0    60   Input ~ 0
+DIR
+Text GLabel 4400 4350 0    60   Input ~ 0
+FAUL
+Text GLabel 4600 4250 0    60   Input ~ 0
+HOME
+Text GLabel 4600 3950 0    60   Input ~ 0
+SLEEP
+Text GLabel 4600 3850 0    60   Input ~ 0
+RESET
 $EndSCHEMATC
